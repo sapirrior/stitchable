@@ -1,13 +1,17 @@
-import type { ElementChild } from '../types.js';
-import { jsx } from '../reconciler/element.js';
-import { TerminalEngine } from '../engine/TerminalEngine.js';
-import Component from '../engine/Component.js';
-import { reconcileRoot, unmountTree } from '../reconciler/reconcile.js';
-import type { ComponentInstance } from '../reconciler/instance.js';
-import { renderElement } from '../elements/index.js';
-import { AppScheduler } from './AppScheduler.js';
-import { InputDispatcher } from './InputDispatcher.js';
-import { AppContext, type AppContextValue, type CursorPosition } from './AppContext.js';
+import type { ElementChild } from "../types.js";
+import { jsx } from "../reconciler/element.js";
+import { TerminalEngine } from "../engine/TerminalEngine.js";
+import Component from "../engine/Component.js";
+import { reconcileRoot, unmountTree } from "../reconciler/reconcile.js";
+import type { ComponentInstance } from "../reconciler/instance.js";
+import { renderElement } from "../elements/index.js";
+import { AppScheduler } from "./AppScheduler.js";
+import { InputDispatcher } from "./InputDispatcher.js";
+import {
+  AppContext,
+  type AppContextValue,
+  type CursorPosition,
+} from "./AppContext.js";
 
 export interface AppRootOptions {
   engine?: TerminalEngine;
@@ -58,7 +62,12 @@ export class AppRoot {
     // Single persistent input listener registration
     this.removeInputListener = this.engine.addInputListener((ev) => {
       if (this.isUnmounted) return;
-      if (exitOnCtrlC && ev.type === 'key' && ev.key.ctrl && ev.key.name === 'c') {
+      if (
+        exitOnCtrlC &&
+        ev.type === "key" &&
+        ev.key.ctrl &&
+        ev.key.name === "c"
+      ) {
         this.unmount();
         if (this.onExit) {
           this.onExit();
@@ -182,18 +191,20 @@ class RootLineComponent extends Component {
   }
 }
 
-export function extractReconciledElement(instance: ComponentInstance | null): any {
+export function extractReconciledElement(
+  instance: ComponentInstance | null,
+): any {
   if (!instance) return null;
-  if (instance.tag === 'text') {
+  if (instance.tag === "text") {
     return instance.element;
   }
-  if (instance.tag === 'function' || instance.tag === 'class') {
+  if (instance.tag === "function" || instance.tag === "class") {
     return extractReconciledElement(instance.renderedChild);
   }
-  if (instance.tag === 'fragment') {
+  if (instance.tag === "fragment") {
     return instance.children.map(extractReconciledElement);
   }
-  if (instance.tag === 'host') {
+  if (instance.tag === "host") {
     if (!instance.type) {
       return instance.element;
     }

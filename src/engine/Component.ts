@@ -1,4 +1,4 @@
-import type TerminalEngine from './TerminalEngine.js';
+import type TerminalEngine from "./TerminalEngine.js";
 
 /**
  * Base Component class.
@@ -14,8 +14,9 @@ export class Component<
   _dirty = true;
   _lastWidth?: number;
   _cachedLines: string[] = [];
-  _updater: { enqueueSetState(inst: Component<any, any>, partial: Partial<any>): void } | null =
-    null;
+  _updater: {
+    enqueueSetState(inst: Component<any, any>, partial: Partial<any>): void;
+  } | null = null;
 
   /** true = word-wrap across rows, false = single row */
   wrap = false;
@@ -65,13 +66,20 @@ export class Component<
     }
   }
 
-  _cachedCursor: { logicalLineIndex: number; characterOffsetWithinLine: number } | null = null;
+  _cachedCursor: {
+    logicalLineIndex: number;
+    characterOffsetWithinLine: number;
+  } | null = null;
 
   /**
    * Returns lines array, using cache if clean and width matches.
    */
   _getLines(width?: number, forceRedraw = false): string[] {
-    if (this._dirty || forceRedraw || (width !== undefined && width !== this._lastWidth)) {
+    if (
+      this._dirty ||
+      forceRedraw ||
+      (width !== undefined && width !== this._lastWidth)
+    ) {
       const result = this.renderWithCursor(width);
       this._cachedLines = result.lines;
       this._cachedCursor = result.cursor ?? null;
@@ -89,7 +97,10 @@ export class Component<
    * Return { logicalLineIndex, characterOffsetWithinLine } for cursor placement.
    * Derived directly from single-pass renderWithCursor().
    */
-  getLogicalCursor(): { logicalLineIndex: number; characterOffsetWithinLine: number } | null {
+  getLogicalCursor(): {
+    logicalLineIndex: number;
+    characterOffsetWithinLine: number;
+  } | null {
     if (this._dirty) {
       this._getLines(this._lastWidth);
     }
@@ -98,13 +109,13 @@ export class Component<
 
   /** Lifecycle hooks */
   onMount(): void {
-    if (typeof this.componentDidMount === 'function') {
+    if (typeof this.componentDidMount === "function") {
       this.componentDidMount();
     }
   }
 
   onUnmount(): void {
-    if (typeof this.componentWillUnmount === 'function') {
+    if (typeof this.componentWillUnmount === "function") {
       this.componentWillUnmount();
     }
     this.engine = null;
@@ -119,10 +130,16 @@ export class Component<
    */
   renderWithCursor(width?: number): {
     lines: string[];
-    cursor?: { logicalLineIndex: number; characterOffsetWithinLine: number } | null;
+    cursor?: {
+      logicalLineIndex: number;
+      characterOffsetWithinLine: number;
+    } | null;
   } {
     const output = this.render(width);
-    if (Array.isArray(output) && (output.length === 0 || typeof output[0] === 'string')) {
+    if (
+      Array.isArray(output) &&
+      (output.length === 0 || typeof output[0] === "string")
+    ) {
       return {
         lines: output as string[],
         cursor: null,

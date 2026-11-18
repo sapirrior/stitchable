@@ -1,4 +1,4 @@
-import type { ComponentInstance } from './instance.js';
+import type { ComponentInstance } from "./instance.js";
 
 export type DependencyList = readonly unknown[];
 export type StateAction<S> = S | ((previous: S) => S);
@@ -8,13 +8,13 @@ export interface MutableRef<T> {
 }
 
 export type HookSlot =
-  | { kind: 'state'; state: any }
-  | { kind: 'reducer'; state: any; reducer: Reducer<any, any> }
-  | { kind: 'ref'; ref: MutableRef<any> }
-  | { kind: 'memo'; value: any; deps: DependencyList }
-  | { kind: 'callback'; callback: any; deps: DependencyList }
+  | { kind: "state"; state: any }
+  | { kind: "reducer"; state: any; reducer: Reducer<any, any> }
+  | { kind: "ref"; ref: MutableRef<any> }
+  | { kind: "memo"; value: any; deps: DependencyList }
+  | { kind: "callback"; callback: any; deps: DependencyList }
   | {
-      kind: 'effect';
+      kind: "effect";
       deps?: DependencyList;
       destroy?: () => void;
       create?: () => void | (() => void);
@@ -45,7 +45,10 @@ export function getPendingEffects(): EffectRecord[] {
   return effects;
 }
 
-export function areDepsEqual(prev?: DependencyList, next?: DependencyList): boolean {
+export function areDepsEqual(
+  prev?: DependencyList,
+  next?: DependencyList,
+): boolean {
   if (!prev || !next) return false;
   if (prev.length !== next.length) return false;
   for (let i = 0; i < prev.length; i++) {
@@ -64,7 +67,10 @@ export function prepareToRenderInstance(instance: ComponentInstance): void {
 
 export function finishRenderingInstance(): void {
   if (currentInstance) {
-    if (currentInstance.isMounted && currentHookIndex < currentInstance.hookSlots.length) {
+    if (
+      currentInstance.isMounted &&
+      currentHookIndex < currentInstance.hookSlots.length
+    ) {
       throw new Error(
         `Rendered fewer hooks than expected. Previous: ${currentInstance.hookSlots.length}, Current: ${currentHookIndex}.`,
       );
@@ -109,11 +115,11 @@ export function registerEffect(
   deps: DependencyList | undefined,
   isLayout: boolean,
 ): void {
-  const { slot, isNew, instance, index } = getWorkInProgressHook('effect');
+  const { slot, isNew, instance, index } = getWorkInProgressHook("effect");
 
   if (isNew) {
     const effectSlot: HookSlot = {
-      kind: 'effect',
+      kind: "effect",
       deps,
       isLayout,
     };
@@ -128,7 +134,7 @@ export function registerEffect(
   }
 
   const effSlot = slot as {
-    kind: 'effect';
+    kind: "effect";
     deps?: DependencyList;
     destroy?: () => void;
     isLayout: boolean;
@@ -148,11 +154,11 @@ export function registerEffect(
 
 export function cleanupInstanceEffects(instance: ComponentInstance): void {
   for (const slot of instance.hookSlots) {
-    if (slot.kind === 'effect' && typeof slot.destroy === 'function') {
+    if (slot.kind === "effect" && typeof slot.destroy === "function") {
       try {
         slot.destroy();
       } catch (e) {
-        console.error('Error during effect cleanup:', e);
+        console.error("Error during effect cleanup:", e);
       }
       slot.destroy = undefined;
     }

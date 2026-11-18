@@ -1,8 +1,8 @@
-import { useEffect } from './useEffect.js';
-import { useRef } from './useRef.js';
-import { useApp } from './useApp.js';
-import { getCurrentRenderingInstance } from '../reconciler/hookState.js';
-import type { InputEvent } from '../terminal/input.js';
+import { useEffect } from "./useEffect.js";
+import { useRef } from "./useRef.js";
+import { useApp } from "./useApp.js";
+import { getCurrentRenderingInstance } from "../reconciler/hookState.js";
+import type { InputEvent } from "../terminal/input.js";
 
 export function useInput(
   handler: (event: InputEvent) => boolean | void,

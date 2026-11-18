@@ -1,15 +1,20 @@
-import type { TextProps, Block, RenderContext, StitchableElement } from './types.js';
-import { visibleWidth } from '../text/width.js';
-import { truncate } from '../text/truncate.js';
-import { wrapVisualLine } from '../text/wrap.js';
-import { applyStyleFrame, mergeStyles } from './style.js';
-import { colorToSgr } from '../terminal/color.js';
-import { RESET_SGR } from '../terminal/sequences.js';
+import type {
+  TextProps,
+  Block,
+  RenderContext,
+  StitchableElement,
+} from "./types.js";
+import { visibleWidth } from "../text/width.js";
+import { truncate } from "../text/truncate.js";
+import { wrapVisualLine } from "../text/wrap.js";
+import { applyStyleFrame, mergeStyles } from "./style.js";
+import { colorToSgr } from "../terminal/color.js";
+import { RESET_SGR } from "../terminal/sequences.js";
 
 export function hardWrapLine(text: string, width: number): string[] {
-  if (width <= 0) return [''];
+  if (width <= 0) return [""];
   const lines: string[] = [];
-  let current = '';
+  let current = "";
   let currentWidth = 0;
 
   // Walk text preserving SGR codes
@@ -36,8 +41,8 @@ export function hardWrapLine(text: string, width: number): string[] {
     }
 
     const segmenter =
-      typeof Intl !== 'undefined' && Intl.Segmenter
-        ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+      typeof Intl !== "undefined" && Intl.Segmenter
+        ? new Intl.Segmenter(undefined, { granularity: "grapheme" })
         : null;
 
     const graphemes = segmenter
@@ -72,24 +77,30 @@ export function flattenStyledChildren(
   parentStyle: TextProps | null,
   context: RenderContext,
 ): string {
-  if (node === null || node === undefined || typeof node === 'boolean') {
-    return '';
+  if (node === null || node === undefined || typeof node === "boolean") {
+    return "";
   }
 
-  if (typeof node === 'string' || typeof node === 'number') {
+  if (typeof node === "string" || typeof node === "number") {
     const raw = String(node);
     if (!parentStyle) return raw;
     return applyStyleFrame(raw, parentStyle, null, context.colorLevel);
   }
 
   if (Array.isArray(node)) {
-    return node.map((child) => flattenStyledChildren(child, parentStyle, context)).join('');
+    return node
+      .map((child) => flattenStyledChildren(child, parentStyle, context))
+      .join("");
   }
 
-  if (typeof node === 'object' && node.type) {
+  if (typeof node === "object" && node.type) {
     const childProps = node.props || {};
     const merged = mergeStyles(parentStyle, childProps);
-    const inner = flattenStyledChildren(childProps.children ?? node.children, merged, context);
+    const inner = flattenStyledChildren(
+      childProps.children ?? node.children,
+      merged,
+      context,
+    );
     return inner;
   }
 
@@ -102,11 +113,11 @@ export function renderTextElement(
 ): Block {
   const props = element.props || {};
   const width = Math.max(1, context.width);
-  const wrapMode = props.wrap ?? 'wrap';
+  const wrapMode = props.wrap ?? "wrap";
   const hangingIndent =
-    typeof props.hangingIndent === 'number'
+    typeof props.hangingIndent === "number"
       ? props.hangingIndent
-      : typeof props.hangingIndent === 'string'
+      : typeof props.hangingIndent === "string"
         ? visibleWidth(props.hangingIndent)
         : 0;
 
@@ -121,29 +132,33 @@ export function renderTextElement(
     context,
   );
 
-  const rawLines = styledContent.split('\n');
+  const rawLines = styledContent.split("\n");
   const resultLines: string[] = [];
 
   const isNoWrap =
-    wrapMode === 'nowrap' || wrapMode === 'none' || (wrapMode as any) === false;
+    wrapMode === "nowrap" || wrapMode === "none" || (wrapMode as any) === false;
 
   for (const rawLine of rawLines) {
     if (isNoWrap) {
       resultLines.push(rawLine);
-    } else if (wrapMode === 'hard') {
+    } else if (wrapMode === "hard") {
       const wrapped = hardWrapLine(rawLine, width);
       for (const w of wrapped) {
         resultLines.push(w);
       }
     } else if (
-      wrapMode === 'truncate' ||
-      wrapMode === 'truncate-end' ||
-      wrapMode === 'truncate-middle' ||
-      wrapMode === 'truncate-start'
+      wrapMode === "truncate" ||
+      wrapMode === "truncate-end" ||
+      wrapMode === "truncate-middle" ||
+      wrapMode === "truncate-start"
     ) {
       const mode =
-        wrapMode === 'truncate-start' ? 'start' : wrapMode === 'truncate-middle' ? 'middle' : 'end';
-      const truncated = truncate(rawLine, width, { mode, ellipsis: '…' });
+        wrapMode === "truncate-start"
+          ? "start"
+          : wrapMode === "truncate-middle"
+            ? "middle"
+            : "end";
+      const truncated = truncate(rawLine, width, { mode, ellipsis: "…" });
       resultLines.push(truncated);
     } else {
       // Default: word wrap
@@ -161,25 +176,41 @@ export function renderTextElement(
   };
 }
 
-export function Text(arg1?: any, ...restArgs: any[]): StitchableElement<TextProps> {
+export function Text(
+  arg1?: any,
+  ...restArgs: any[]
+): StitchableElement<TextProps> {
   let props: TextProps = {};
   let children: any[] = [];
 
   const isPropsObject = (obj: any) =>
-    typeof obj === 'object' && obj !== null && !Array.isArray(obj) && !('type' in obj);
+    typeof obj === "object" &&
+    obj !== null &&
+    !Array.isArray(obj) &&
+    !("type" in obj);
 
   if (isPropsObject(arg1)) {
     props = { ...arg1 };
     if (restArgs.length > 0) {
-      children = restArgs.length === 1 && Array.isArray(restArgs[0]) ? restArgs[0] : restArgs;
+      children =
+        restArgs.length === 1 && Array.isArray(restArgs[0])
+          ? restArgs[0]
+          : restArgs;
     } else if (props.children !== undefined) {
-      children = Array.isArray(props.children) ? props.children : [props.children];
+      children = Array.isArray(props.children)
+        ? props.children
+        : [props.children];
     }
   } else if (restArgs.length > 0 && isPropsObject(restArgs[0])) {
     props = { ...restArgs[0] };
     children = arg1 !== undefined ? (Array.isArray(arg1) ? arg1 : [arg1]) : [];
   } else {
-    children = arg1 !== undefined ? (Array.isArray(arg1) ? arg1 : [arg1, ...restArgs]) : restArgs;
+    children =
+      arg1 !== undefined
+        ? Array.isArray(arg1)
+          ? arg1
+          : [arg1, ...restArgs]
+        : restArgs;
   }
 
   props.children = children;

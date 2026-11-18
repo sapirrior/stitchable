@@ -1,6 +1,6 @@
-import { DocumentTree } from './DocumentTree.js';
-import { measureNode } from './layout.js';
-import { ScrollModel } from './scroll.js';
+import { DocumentTree } from "./DocumentTree.js";
+import { measureNode } from "./layout.js";
+import { ScrollModel } from "./scroll.js";
 
 export interface DocumentFrame {
   lines: string[];
@@ -32,7 +32,12 @@ export function measureDocument(
 
   for (const node of liveNodes) {
     const nodeStartRow = liveRows.length;
-    const { rows, cursorWithinNode } = measureNode(node, safeWidth, forceAll, onOverflow);
+    const { rows, cursorWithinNode } = measureNode(
+      node,
+      safeWidth,
+      forceAll,
+      onOverflow,
+    );
     for (const r of rows) {
       liveRows.push(r);
     }
@@ -83,7 +88,7 @@ export function sliceViewport(
     const liveStart = Math.max(0, startIndex - histCount);
     const liveEnd = endIndex - histCount;
     for (let i = liveStart; i < liveEnd && i < liveRows.length; i++) {
-      viewportLines.push(liveRows[i]?.text ?? '');
+      viewportLines.push(liveRows[i]?.text ?? "");
     }
   }
 
@@ -127,9 +132,9 @@ export function computeDocumentFrame(
   const measure = measureDocument(tree, safeWidth, forceAll, onOverflow);
 
   let offset = 0;
-  if (typeof scroll === 'number') {
+  if (typeof scroll === "number") {
     offset = scroll;
-  } else if (scroll && typeof scroll.resolve === 'function') {
+  } else if (scroll && typeof scroll.resolve === "function") {
     offset = scroll.resolve({
       total: measure.totalPhysicalRows,
       rows: safeHeight,

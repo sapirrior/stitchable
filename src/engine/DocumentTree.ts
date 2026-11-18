@@ -1,5 +1,5 @@
-import { measureNode, type PhysicalRow } from './layout.js';
-import { HistoryLayoutCache } from './HistoryLayoutCache.js';
+import { measureNode, type PhysicalRow } from "./layout.js";
+import { HistoryLayoutCache } from "./HistoryLayoutCache.js";
 
 export interface ComponentNode {
   id: string;
@@ -13,7 +13,10 @@ export interface ComponentNode {
    * logicalLineIndex: 0-indexed index into the lines returned by getLines(width).
    * characterOffsetWithinLine: character offset within that rendered logical line.
    */
-  getLogicalCursor?(): { logicalLineIndex: number; characterOffsetWithinLine: number } | null;
+  getLogicalCursor?(): {
+    logicalLineIndex: number;
+    characterOffsetWithinLine: number;
+  } | null;
   onMount?(): void;
   onUnmount?(): void;
   onResize?(width: number, height: number): void;
@@ -85,7 +88,11 @@ export class ResponsiveHistoryNode implements ComponentNode {
   }
 
   getLines(width: number, forceAll = false): string[] {
-    if (!forceAll && width === this._cachedWidth && this._cachedLines.length > 0) {
+    if (
+      !forceAll &&
+      width === this._cachedWidth &&
+      this._cachedLines.length > 0
+    ) {
       return this._cachedLines;
     }
     this._cachedWidth = width;
@@ -96,7 +103,8 @@ export class ResponsiveHistoryNode implements ComponentNode {
 
 export class DocumentTree {
   historyLimit?: number;
-  private historyNodes: (TextNode | ResponsiveHistoryNode | ComponentNode)[] = [];
+  private historyNodes: (TextNode | ResponsiveHistoryNode | ComponentNode)[] =
+    [];
   private liveNodes: ComponentNode[] = [];
   private idCounter = 0;
   private cachedHistoryRows: PhysicalRow[] = [];
@@ -170,10 +178,14 @@ export class DocumentTree {
     );
     this.historyNodes.push(node);
     if (this.lastHistoryWidth > 0) {
-      const cached = this.layoutCache.getOrCompute(node.id, this.lastHistoryWidth, () => {
-        const { rows } = measureNode(node, this.lastHistoryWidth);
-        return rows;
-      });
+      const cached = this.layoutCache.getOrCompute(
+        node.id,
+        this.lastHistoryWidth,
+        () => {
+          const { rows } = measureNode(node, this.lastHistoryWidth);
+          return rows;
+        },
+      );
       for (const r of cached.physicalRows) {
         this.cachedHistoryRows.push(r);
       }
@@ -197,10 +209,14 @@ export class DocumentTree {
     );
     this.historyNodes.push(node);
     if (this.lastHistoryWidth > 0) {
-      const cached = this.layoutCache.getOrCompute(node.id, this.lastHistoryWidth, () => {
-        const { rows } = measureNode(node, this.lastHistoryWidth);
-        return rows;
-      });
+      const cached = this.layoutCache.getOrCompute(
+        node.id,
+        this.lastHistoryWidth,
+        () => {
+          const { rows } = measureNode(node, this.lastHistoryWidth);
+          return rows;
+        },
+      );
       for (const r of cached.physicalRows) {
         this.cachedHistoryRows.push(r);
       }
@@ -212,14 +228,14 @@ export class DocumentTree {
   mountNode(node: ComponentNode): void {
     if (!this.liveNodes.includes(node)) {
       this.liveNodes.push(node);
-      if (typeof node.onMount === 'function') {
+      if (typeof node.onMount === "function") {
         node.onMount();
       }
     }
   }
 
   unmountNode(node: ComponentNode): void {
-    if (typeof node.onUnmount === 'function') {
+    if (typeof node.onUnmount === "function") {
       node.onUnmount();
     }
     this.liveNodes = this.liveNodes.filter((n) => n !== node);
@@ -238,17 +254,25 @@ export class DocumentTree {
   }
 
   ensureHistory(contentWidth: number, forceAll = false): void {
-    if (!forceAll && contentWidth === this.lastHistoryWidth && this.cachedHistoryRows.length > 0) {
+    if (
+      !forceAll &&
+      contentWidth === this.lastHistoryWidth &&
+      this.cachedHistoryRows.length > 0
+    ) {
       return;
     }
 
     this.lastHistoryWidth = contentWidth;
     this.cachedHistoryRows = [];
     for (const node of this.historyNodes) {
-      const cached = this.layoutCache.getOrCompute(node.id, contentWidth, () => {
-        const { rows } = measureNode(node, contentWidth, forceAll);
-        return rows;
-      });
+      const cached = this.layoutCache.getOrCompute(
+        node.id,
+        contentWidth,
+        () => {
+          const { rows } = measureNode(node, contentWidth, forceAll);
+          return rows;
+        },
+      );
       for (const r of cached.physicalRows) {
         this.cachedHistoryRows.push(r);
       }
@@ -261,7 +285,11 @@ export class DocumentTree {
     return this.cachedHistoryRows.length;
   }
 
-  sliceHistory(start: number, end: number, contentWidth?: number): PhysicalRow[] {
+  sliceHistory(
+    start: number,
+    end: number,
+    contentWidth?: number,
+  ): PhysicalRow[] {
     if (contentWidth !== undefined && contentWidth > 0) {
       this.ensureHistory(contentWidth);
     }
@@ -280,7 +308,10 @@ export class DocumentTree {
     this.lastHistoryWidth = -1;
     this.cachedHistoryRows = [];
     for (const node of this.historyNodes) {
-      if ('invalidateCache' in node && typeof (node as any).invalidateCache === 'function') {
+      if (
+        "invalidateCache" in node &&
+        typeof (node as any).invalidateCache === "function"
+      ) {
         (node as any).invalidateCache();
       }
     }
@@ -296,7 +327,7 @@ export class DocumentTree {
   clearAll(): void {
     this.layoutCache.clear();
     for (const node of this.liveNodes) {
-      if (typeof node.onUnmount === 'function') {
+      if (typeof node.onUnmount === "function") {
         node.onUnmount();
       }
     }

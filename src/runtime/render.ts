@@ -1,7 +1,7 @@
-import type { ElementChild } from '../types.js';
-import { TerminalEngine } from '../engine/TerminalEngine.js';
-import { nodeIO, type TerminalIO } from '../terminal/io.js';
-import { AppRoot } from './AppRoot.js';
+import type { ElementChild } from "../types.js";
+import { TerminalEngine } from "../engine/TerminalEngine.js";
+import { nodeIO, type TerminalIO } from "../terminal/io.js";
+import { AppRoot } from "./AppRoot.js";
 
 export interface RenderOptions {
   io?: TerminalIO;
@@ -32,8 +32,12 @@ export interface RenderHandle {
  * await waitUntilExit();
  * ```
  */
-export function render(element: ElementChild, options: RenderOptions = {}): RenderHandle {
-  const io = options.io ?? nodeIO({ stdout: options.stdout, stdin: options.stdin });
+export function render(
+  element: ElementChild,
+  options: RenderOptions = {},
+): RenderHandle {
+  const io =
+    options.io ?? nodeIO({ stdout: options.stdout, stdin: options.stdin });
 
   const engine = new TerminalEngine({
     io,

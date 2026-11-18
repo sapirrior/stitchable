@@ -1,7 +1,7 @@
-import { SgrState } from '../text/ansi.js';
-import { graphemeWidth, segmentGraphemes } from '../text/width.js';
-import { sanitize } from '../text/sanitize.js';
-import { RESET_SGR } from '../terminal/sequences.js';
+import { SgrState } from "../text/ansi.js";
+import { graphemeWidth, segmentGraphemes } from "../text/width.js";
+import { sanitize } from "../text/sanitize.js";
+import { RESET_SGR } from "../terminal/sequences.js";
 
 export class ScreenBuffer {
   readonly width: number;
@@ -25,8 +25,8 @@ export class ScreenBuffer {
     this.widths = new Uint8Array(totalCells);
     this.rowCache = new Array(this.height).fill(null);
 
-    this.styleTable = [''];
-    this.styleMap = new Map([['', 0]]);
+    this.styleTable = [""];
+    this.styleMap = new Map([["", 0]]);
 
     this.clear();
   }
@@ -43,14 +43,20 @@ export class ScreenBuffer {
   }
 
   clear(): void {
-    this.chars.fill(' ');
+    this.chars.fill(" ");
     this.styleIds.fill(0);
     this.widths.fill(1);
-    this.rowCache.fill('');
+    this.rowCache.fill("");
   }
 
   blitText(x: number, y: number, maxWidth: number, styledText: string): void {
-    if (y < 0 || y >= this.height || x >= this.width || maxWidth <= 0 || !styledText) {
+    if (
+      y < 0 ||
+      y >= this.height ||
+      x >= this.width ||
+      maxWidth <= 0 ||
+      !styledText
+    ) {
       return;
     }
 
@@ -86,7 +92,7 @@ export class ScreenBuffer {
 
         if (w === 2 && x + col + 1 < this.width) {
           const nextIdx = cellIdx + 1;
-          this.chars[nextIdx] = '';
+          this.chars[nextIdx] = "";
           this.styleIds[nextIdx] = styleId;
           this.widths[nextIdx] = 0;
         }
@@ -110,7 +116,7 @@ export class ScreenBuffer {
   }
 
   getRow(y: number): string {
-    if (y < 0 || y >= this.height) return '';
+    if (y < 0 || y >= this.height) return "";
     const cached = this.rowCache[y];
     if (cached !== null && cached !== undefined) return cached;
 
@@ -122,18 +128,18 @@ export class ScreenBuffer {
       const idx = rowOffset + lastUsedCol;
       const char = this.chars[idx];
       const styleId = this.styleIds[idx];
-      if (char !== ' ' || styleId !== 0) {
+      if (char !== " " || styleId !== 0) {
         break;
       }
       lastUsedCol--;
     }
 
     if (lastUsedCol < 0) {
-      this.rowCache[y] = '';
-      return '';
+      this.rowCache[y] = "";
+      return "";
     }
 
-    let out = '';
+    let out = "";
     let currentStyleId = 0;
 
     for (let x = 0; x <= lastUsedCol; x++) {
@@ -146,7 +152,7 @@ export class ScreenBuffer {
         if (currentStyleId !== 0 && cellStyleId === 0) {
           out += RESET_SGR;
         } else if (cellStyleId !== 0) {
-          const styleStr = this.styleTable[cellStyleId] || '';
+          const styleStr = this.styleTable[cellStyleId] || "";
           if (currentStyleId !== 0) {
             out += RESET_SGR + styleStr;
           } else {
@@ -172,8 +178,8 @@ export class ScreenBuffer {
     const maxRows = Math.max(this.height, prev.height);
 
     for (let y = 0; y < maxRows; y++) {
-      const currentLine = y < this.height ? this.getRow(y) : '';
-      const prevLine = y < prev.height ? prev.getRow(y) : '';
+      const currentLine = y < this.height ? this.getRow(y) : "";
+      const prevLine = y < prev.height ? prev.getRow(y) : "";
 
       if (currentLine !== prevLine) {
         changes.push({ row: y, text: currentLine });
@@ -192,7 +198,7 @@ export class ScreenBuffer {
   }
 
   toString(): string {
-    return this.toLines().join('\n');
+    return this.toLines().join("\n");
   }
 }
 

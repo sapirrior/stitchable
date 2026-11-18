@@ -1,10 +1,10 @@
-import { useLayoutEffect } from './useLayoutEffect.js';
-import { useRef } from './useRef.js';
-import { useState } from './useState.js';
-import { useApp } from './useApp.js';
-import { areDepsEqual, type DependencyList } from '../reconciler/hookState.js';
-import { renderStatic } from '../reconciler/renderStatic.js';
-import type { ElementChild, CommitHistoryOptions } from '../types.js';
+import { useLayoutEffect } from "./useLayoutEffect.js";
+import { useRef } from "./useRef.js";
+import { useState } from "./useState.js";
+import { useApp } from "./useApp.js";
+import { areDepsEqual, type DependencyList } from "../reconciler/hookState.js";
+import { renderStatic } from "../reconciler/renderStatic.js";
+import type { ElementChild, CommitHistoryOptions } from "../types.js";
 
 export function useCommitHistory(
   element: ElementChild,
@@ -12,7 +12,7 @@ export function useCommitHistory(
   options?: CommitHistoryOptions,
 ): { readonly committed: boolean } {
   if (!deps || !Array.isArray(deps)) {
-    throw new Error('useCommitHistory requires a dependency array');
+    throw new Error("useCommitHistory requires a dependency array");
   }
 
   const app = useApp();
@@ -28,7 +28,10 @@ export function useCommitHistory(
 
   useLayoutEffect(() => {
     if (!enabled) return;
-    if (lastCommittedDepsRef.current && areDepsEqual(lastCommittedDepsRef.current, deps)) {
+    if (
+      lastCommittedDepsRef.current &&
+      areDepsEqual(lastCommittedDepsRef.current, deps)
+    ) {
       return;
     }
 

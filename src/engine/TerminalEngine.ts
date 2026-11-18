@@ -1,8 +1,8 @@
-import Component from './Component.js';
-import HistoryStore from './HistoryStore.js';
-import StateRenderer from './StateRenderer.js';
-import { DocumentTree, type ComponentNode } from './DocumentTree.js';
-import { ScrollModel, type ScrollSnapshot } from './scroll.js';
+import Component from "./Component.js";
+import HistoryStore from "./HistoryStore.js";
+import StateRenderer from "./StateRenderer.js";
+import { DocumentTree, type ComponentNode } from "./DocumentTree.js";
+import { ScrollModel, type ScrollSnapshot } from "./scroll.js";
 import {
   InputParser,
   ESC_TIMEOUT_MS,
@@ -10,8 +10,8 @@ import {
   toInputEvent,
   type InputEvent,
   type TerminalEvent,
-} from '../terminal/input.js';
-import { nodeIO, type TerminalIO } from '../terminal/io.js';
+} from "../terminal/input.js";
+import { nodeIO, type TerminalIO } from "../terminal/io.js";
 import {
   ENTER_ALTERNATE_SCREEN,
   EXIT_ALTERNATE_SCREEN,
@@ -26,7 +26,7 @@ import {
   CURSOR_HOME,
   HIDE_CURSOR,
   SHOW_CURSOR,
-} from '../terminal/sequences.js';
+} from "../terminal/sequences.js";
 
 class ComponentNodeAdapter implements ComponentNode {
   id: string;
@@ -53,27 +53,30 @@ class ComponentNodeAdapter implements ComponentNode {
     return this.comp._getLines(width, forceAll);
   }
 
-  getLogicalCursor(): { logicalLineIndex: number; characterOffsetWithinLine: number } | null {
-    if (typeof this.comp.getLogicalCursor === 'function') {
+  getLogicalCursor(): {
+    logicalLineIndex: number;
+    characterOffsetWithinLine: number;
+  } | null {
+    if (typeof this.comp.getLogicalCursor === "function") {
       return this.comp.getLogicalCursor();
     }
     return null;
   }
 
   onMount(): void {
-    if (typeof this.comp.onMount === 'function') {
+    if (typeof this.comp.onMount === "function") {
       this.comp.onMount();
     }
   }
 
   onUnmount(): void {
-    if (typeof this.comp.onUnmount === 'function') {
+    if (typeof this.comp.onUnmount === "function") {
       this.comp.onUnmount();
     }
   }
 
   onResize(width: number, height: number): void {
-    if (typeof this.comp.onResize === 'function') {
+    if (typeof this.comp.onResize === "function") {
       this.comp.onResize(width, height);
     }
   }
@@ -81,7 +84,10 @@ class ComponentNodeAdapter implements ComponentNode {
 
 export interface TerminalEngineOptions {
   io?: TerminalIO;
-  onError?: (err: unknown, ctx?: { source: string; forcedFull: boolean }) => void;
+  onError?: (
+    err: unknown,
+    ctx?: { source: string; forcedFull: boolean },
+  ) => void;
   exitHook?: boolean;
   mouse?: boolean;
   scrollKeys?: boolean;
@@ -103,12 +109,19 @@ export class TerminalEngine {
   inAlternateScreen: boolean;
   private scrollModel: ScrollModel;
 
-  private onError?: (err: unknown, ctx?: { source: string; forcedFull: boolean }) => void;
+  private onError?: (
+    err: unknown,
+    ctx?: { source: string; forcedFull: boolean },
+  ) => void;
   private exitHook: boolean;
   private mouse: boolean;
   private scrollKeys: boolean;
   private focusReporting: boolean;
-  private onOverflow?: (info: { width: number; maxCols: number; row: string }) => void;
+  private onOverflow?: (info: {
+    width: number;
+    maxCols: number;
+    row: string;
+  }) => void;
   private maxFps?: number;
   private historyLimit?: number;
 
@@ -170,7 +183,7 @@ export class TerminalEngine {
         const h = this.io.rows;
         this.tree.invalidateCache();
         for (const comp of this.components) {
-          if (typeof comp.onResize === 'function') {
+          if (typeof comp.onResize === "function") {
             comp.onResize(w, h);
           }
         }
@@ -179,15 +192,15 @@ export class TerminalEngine {
     };
 
     this.dispatchTerminalEvent = (ev: TerminalEvent) => {
-      if (ev.type === 'focus') {
+      if (ev.type === "focus") {
         return;
       }
 
-      if (ev.type === 'mouse') {
-        if (ev.action === 'wheel') {
-          if (ev.button === 'wheelUp') {
+      if (ev.type === "mouse") {
+        if (ev.action === "wheel") {
+          if (ev.button === "wheelUp") {
             this.scrollBy(3);
-          } else if (ev.button === 'wheelDown') {
+          } else if (ev.button === "wheelDown") {
             this.scrollBy(-3);
           }
         }
@@ -201,22 +214,22 @@ export class TerminalEngine {
         return;
       }
 
-      if (ev.type === 'key') {
+      if (ev.type === "key") {
         if (this.scrollKeys) {
           const step = Math.max(1, this.io.rows - 1);
-          if (ev.key.name === 'pageup' || ev.key.pageUp) {
+          if (ev.key.name === "pageup" || ev.key.pageUp) {
             this.scrollBy(step);
             return;
           }
-          if (ev.key.name === 'pagedown' || ev.key.pageDown) {
+          if (ev.key.name === "pagedown" || ev.key.pageDown) {
             this.scrollBy(-step);
             return;
           }
-          if (ev.key.name === 'home' && (ev.key.ctrl || ev.key.shift)) {
+          if (ev.key.name === "home" && (ev.key.ctrl || ev.key.shift)) {
             this.scrollToTop();
             return;
           }
-          if (ev.key.name === 'end' && (ev.key.ctrl || ev.key.shift)) {
+          if (ev.key.name === "end" && (ev.key.ctrl || ev.key.shift)) {
             this.scrollToBottom();
             return;
           }
@@ -241,7 +254,7 @@ export class TerminalEngine {
         return;
       }
 
-      if (ev.type === 'paste') {
+      if (ev.type === "paste") {
         if (this.scrollModel.snapshot().offset > 0) {
           this.scrollToBottom();
         }
@@ -263,7 +276,7 @@ export class TerminalEngine {
     // Central keyboard and ANSI input dispatch
     this.inputHandler = (chunk: string) => {
       if (!this.inAlternateScreen || this.disposed) return;
-      const str = typeof chunk === 'string' ? chunk : String(chunk);
+      const str = typeof chunk === "string" ? chunk : String(chunk);
       const events = this.inputParser.feed(str);
 
       if (this.inputParser.pending) {
@@ -330,14 +343,18 @@ export class TerminalEngine {
   addInputListener(listener: (ev: InputEvent) => boolean | void): () => void {
     this.customInputListeners.push(listener);
     return () => {
-      this.customInputListeners = this.customInputListeners.filter((l) => l !== listener);
+      this.customInputListeners = this.customInputListeners.filter(
+        (l) => l !== listener,
+      );
     };
   }
 
   addMouseListener(listener: (ev: MouseEvent) => boolean | void): () => void {
     this.customMouseListeners.push(listener);
     return () => {
-      this.customMouseListeners = this.customMouseListeners.filter((l) => l !== listener);
+      this.customMouseListeners = this.customMouseListeners.filter(
+        (l) => l !== listener,
+      );
     };
   }
 
@@ -391,9 +408,14 @@ export class TerminalEngine {
       this.cleanupInputListener = this.io.input.onData(this.inputHandler);
       this.cleanupResizeListener = this.io.onResize(this.resizeHandler);
 
-      if (this.exitHook && !this.exitHookFn && typeof process !== 'undefined' && process.on) {
+      if (
+        this.exitHook &&
+        !this.exitHookFn &&
+        typeof process !== "undefined" &&
+        process.on
+      ) {
         this.exitHookFn = () => this.cleanupSync();
-        process.on('exit', this.exitHookFn);
+        process.on("exit", this.exitHookFn);
       }
     }
   }
@@ -427,8 +449,8 @@ export class TerminalEngine {
       } catch {}
     }
 
-    if (this.exitHookFn && typeof process !== 'undefined' && process.off) {
-      process.off('exit', this.exitHookFn);
+    if (this.exitHookFn && typeof process !== "undefined" && process.off) {
+      process.off("exit", this.exitHookFn);
       this.exitHookFn = null;
     }
   }
@@ -474,8 +496,8 @@ export class TerminalEngine {
       }
     }
 
-    if (this.exitHookFn && typeof process !== 'undefined' && process.off) {
-      process.off('exit', this.exitHookFn);
+    if (this.exitHookFn && typeof process !== "undefined" && process.off) {
+      process.off("exit", this.exitHookFn);
       this.exitHookFn = null;
     }
   }
@@ -516,7 +538,7 @@ export class TerminalEngine {
     this.resolveFlushPromises();
 
     for (const comp of this.components) {
-      if (typeof comp.onUnmount === 'function') {
+      if (typeof comp.onUnmount === "function") {
         comp.onUnmount();
       }
     }
@@ -542,23 +564,42 @@ export class TerminalEngine {
 
   commit(
     linesOrFn: string[] | ((width: number) => string[]),
-    opts?: { wrap?: boolean; clip?: boolean; hangingIndent?: number; tag?: string },
+    opts?: {
+      wrap?: boolean;
+      clip?: boolean;
+      hangingIndent?: number;
+      tag?: string;
+    },
   ): void {
     this.ensureAlternateScreen();
     const isWrappable = opts?.wrap ?? true;
     const isClipped = opts?.clip ?? !isWrappable;
-    if (typeof linesOrFn === 'function') {
+    if (typeof linesOrFn === "function") {
       const initialLines = linesOrFn(this.io.columns);
       this.history.push(initialLines, opts?.tag);
-      this.tree.addResponsive(linesOrFn, isWrappable, isClipped, opts?.hangingIndent);
+      this.tree.addResponsive(
+        linesOrFn,
+        isWrappable,
+        isClipped,
+        opts?.hangingIndent,
+      );
     } else {
       this.history.push(linesOrFn, opts?.tag);
-      this.tree.addText(linesOrFn, isWrappable, undefined, opts?.hangingIndent, isClipped);
+      this.tree.addText(
+        linesOrFn,
+        isWrappable,
+        undefined,
+        opts?.hangingIndent,
+        isClipped,
+      );
     }
     this.requestFrame();
   }
 
-  mount(component: Component, options: { keepCursorVisible?: boolean } = {}): void {
+  mount(
+    component: Component,
+    options: { keepCursorVisible?: boolean } = {},
+  ): void {
     this.ensureAlternateScreen();
     // If component is already mounted, unmount previous adapter first to avoid duplicate nodes
     if (this.adapters.has(component)) {
@@ -568,7 +609,10 @@ export class TerminalEngine {
     component.engine = this;
     this.components.push(component);
 
-    const adapter = new ComponentNodeAdapter(`comp-${this.idCounter++}`, component);
+    const adapter = new ComponentNodeAdapter(
+      `comp-${this.idCounter++}`,
+      component,
+    );
     this.adapters.set(component, adapter);
     this.tree.mountNode(adapter);
 
@@ -638,7 +682,9 @@ export class TerminalEngine {
   afterNextFrame(callback: () => void): () => void {
     this.postFrameCallbacks.push(callback);
     return () => {
-      this.postFrameCallbacks = this.postFrameCallbacks.filter((cb) => cb !== callback);
+      this.postFrameCallbacks = this.postFrameCallbacks.filter(
+        (cb) => cb !== callback,
+      );
     };
   }
 
@@ -666,7 +712,10 @@ export class TerminalEngine {
     } catch (err) {
       this.consecutiveRenderFailures += 1;
       if (this.onError) {
-        this.onError(err, { source: 'render-frame', forcedFull: shouldForceFull });
+        this.onError(err, {
+          source: "render-frame",
+          forcedFull: shouldForceFull,
+        });
       }
 
       if (this.consecutiveRenderFailures >= 3) {
@@ -688,7 +737,7 @@ export class TerminalEngine {
           cb();
         } catch (err) {
           if (this.onError) {
-            this.onError(err, { source: 'post-frame', forcedFull: false });
+            this.onError(err, { source: "post-frame", forcedFull: false });
           }
         }
       }
@@ -713,7 +762,11 @@ export class TerminalEngine {
       const now = Date.now();
       const elapsed = now - this.lastRenderTime;
 
-      if (elapsed >= minInterval && !this.renderScheduled && !this.renderTimer) {
+      if (
+        elapsed >= minInterval &&
+        !this.renderScheduled &&
+        !this.renderTimer
+      ) {
         this.renderScheduled = true;
         queueMicrotask(() => {
           this.renderScheduled = false;
@@ -746,7 +799,12 @@ export class TerminalEngine {
 
   flush(): Promise<void> {
     if (this.disposed) return Promise.resolve();
-    if (!this.dirty && !this.renderTimer && !this.pendingForceFull && !this.renderScheduled) {
+    if (
+      !this.dirty &&
+      !this.renderTimer &&
+      !this.pendingForceFull &&
+      !this.renderScheduled
+    ) {
       return Promise.resolve();
     }
     return new Promise<void>((resolve) => {

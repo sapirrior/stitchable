@@ -1,8 +1,8 @@
-import type { ElementChild, ElementNode } from '../types.js';
-import type { ColorLevel } from '../terminal/color.js';
-import { renderAnyElement } from '../elements/Box.js';
-import { isElement } from './element.js';
-import Component from '../engine/Component.js';
+import type { ElementChild, ElementNode } from "../types.js";
+import type { ColorLevel } from "../terminal/color.js";
+import { renderAnyElement } from "../elements/Box.js";
+import { isElement } from "./element.js";
+import Component from "../engine/Component.js";
 
 export interface RenderStaticOptions {
   width: number;
@@ -18,9 +18,9 @@ function resolveStaticTree(node: any): any {
   if (
     node === null ||
     node === undefined ||
-    typeof node === 'boolean' ||
-    typeof node === 'string' ||
-    typeof node === 'number'
+    typeof node === "boolean" ||
+    typeof node === "string" ||
+    typeof node === "number"
   ) {
     return node;
   }
@@ -29,32 +29,32 @@ function resolveStaticTree(node: any): any {
     return node.map(resolveStaticTree);
   }
 
-  if (typeof node === 'object' && ('type' in node || isElement(node))) {
+  if (typeof node === "object" && ("type" in node || isElement(node))) {
     const type = node.type;
 
     // Reject class components
     if (
-      typeof type === 'function' &&
+      typeof type === "function" &&
       (type.prototype instanceof Component ||
         (type.prototype &&
-          'render' in type.prototype &&
-          typeof type.prototype.render === 'function'))
+          "render" in type.prototype &&
+          typeof type.prototype.render === "function"))
     ) {
       throw new Error(
-        `Class components cannot be rendered in static history: <${type.name || 'Component'}>`,
+        `Class components cannot be rendered in static history: <${type.name || "Component"}>`,
       );
     }
 
     // Pure function components
-    if (typeof type === 'function') {
+    if (typeof type === "function") {
       const typeName = type.name;
       // Built-in intrinsic functional wrappers (Text, Box, Spacer, Newline, Transform)
       if (
-        typeName === 'Text' ||
-        typeName === 'Box' ||
-        typeName === 'Spacer' ||
-        typeName === 'Newline' ||
-        typeName === 'Transform'
+        typeName === "Text" ||
+        typeName === "Box" ||
+        typeName === "Spacer" ||
+        typeName === "Newline" ||
+        typeName === "Transform"
       ) {
         return {
           ...node,
@@ -89,7 +89,10 @@ function resolveStaticTree(node: any): any {
 /**
  * Renders an element snapshot statically for history without creating component instances or hook slots.
  */
-export function renderStatic(element: ElementChild, options: RenderStaticOptions): string[] {
+export function renderStatic(
+  element: ElementChild,
+  options: RenderStaticOptions,
+): string[] {
   const resolved = resolveStaticTree(element);
   const context = {
     width: options.width,

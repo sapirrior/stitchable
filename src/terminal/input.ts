@@ -20,10 +20,17 @@ export interface Key {
 }
 
 export interface MouseEvent {
-  type: 'mouse';
-  action: 'press' | 'release' | 'move' | 'wheel';
+  type: "mouse";
+  action: "press" | "release" | "move" | "wheel";
   button:
-    'left' | 'middle' | 'right' | 'none' | 'wheelUp' | 'wheelDown' | 'wheelLeft' | 'wheelRight';
+    | "left"
+    | "middle"
+    | "right"
+    | "none"
+    | "wheelUp"
+    | "wheelDown"
+    | "wheelLeft"
+    | "wheelRight";
   col: number;
   row: number;
   shift: boolean;
@@ -32,34 +39,34 @@ export interface MouseEvent {
 }
 
 export type TerminalEvent =
-  | { type: 'key'; input: string; key: Key }
-  | { type: 'paste'; text: string }
+  | { type: "key"; input: string; key: Key }
+  | { type: "paste"; text: string }
   | MouseEvent
-  | { type: 'focus'; focused: boolean };
+  | { type: "focus"; focused: boolean };
 
 export type InputEvent =
-  | { type: 'key'; input: string; key: Key; isPaste?: false; text?: undefined }
-  | { type: 'paste'; input: string; text: string; key: Key; isPaste: true };
+  | { type: "key"; input: string; key: Key; isPaste?: false; text?: undefined }
+  | { type: "paste"; input: string; text: string; key: Key; isPaste: true };
 
 /**
  * Converts a raw TerminalEvent into a safe, typed InputEvent.
  * Returns null for mouse and focus events which do not reach custom input listeners.
  */
 export function toInputEvent(ev: TerminalEvent): InputEvent | null {
-  if (ev.type === 'key') {
+  if (ev.type === "key") {
     return {
-      type: 'key',
+      type: "key",
       input: ev.input,
       key: ev.key,
       isPaste: false,
     };
   }
-  if (ev.type === 'paste') {
+  if (ev.type === "paste") {
     return {
-      type: 'paste',
+      type: "paste",
       input: ev.text,
       text: ev.text,
-      key: makeKey('paste', { paste: true }),
+      key: makeKey("paste", { paste: true }),
       isPaste: true,
     };
   }
@@ -85,24 +92,28 @@ export function makeKey(
     ctrl,
     meta,
     shift,
-    upArrow: name === 'up',
-    downArrow: name === 'down',
-    leftArrow: name === 'left',
-    rightArrow: name === 'right',
-    pageDown: name === 'pagedown',
-    pageUp: name === 'pageup',
-    home: name === 'home',
-    end: name === 'end',
-    return: name === 'return',
-    escape: name === 'escape',
-    tab: name === 'tab',
-    backspace: name === 'backspace',
-    delete: name === 'delete',
+    upArrow: name === "up",
+    downArrow: name === "down",
+    leftArrow: name === "left",
+    rightArrow: name === "right",
+    pageDown: name === "pagedown",
+    pageUp: name === "pageup",
+    home: name === "home",
+    end: name === "end",
+    return: name === "return",
+    escape: name === "escape",
+    tab: name === "tab",
+    backspace: name === "backspace",
+    delete: name === "delete",
     paste,
   };
 }
 
-function decodeModifiers(modNum: number): { ctrl: boolean; meta: boolean; shift: boolean } {
+function decodeModifiers(modNum: number): {
+  ctrl: boolean;
+  meta: boolean;
+  shift: boolean;
+} {
   const bits = Math.max(0, modNum - 1);
   return {
     shift: (bits & 1) !== 0,
@@ -113,16 +124,16 @@ function decodeModifiers(modNum: number): { ctrl: boolean; meta: boolean; shift:
 
 function sanitizePaste(text: string): string {
   // Normalize newlines to \n
-  let out = text.replace(/\r\n|\r/g, '\n');
+  let out = text.replace(/\r\n|\r/g, "\n");
   // Strip ESC (0x1b) and C0 controls except \t (0x09) and \n (0x0A)
   // eslint-disable-next-line no-control-regex
-  out = out.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, '');
+  out = out.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "");
   return out;
 }
 
 export class InputParser {
-  private buf = '';
-  private pasteBuf = '';
+  private buf = "";
+  private pasteBuf = "";
   private inPasteMode = false;
 
   get pending(): boolean {
@@ -134,34 +145,42 @@ export class InputParser {
   }
 
   reset(): void {
-    this.buf = '';
-    this.pasteBuf = '';
+    this.buf = "";
+    this.pasteBuf = "";
     this.inPasteMode = false;
   }
 
   flushPaste(): TerminalEvent[] {
     if (this.inPasteMode && this.pasteBuf.length > 0) {
       const text = sanitizePaste(this.pasteBuf);
-      this.pasteBuf = '';
+      this.pasteBuf = "";
       this.inPasteMode = false;
-      return [{ type: 'paste', text }];
+      return [{ type: "paste", text }];
     }
     this.inPasteMode = false;
-    this.pasteBuf = '';
+    this.pasteBuf = "";
     return [];
   }
 
   flush(): TerminalEvent[] {
     const events: TerminalEvent[] = [];
     if (this.buf.length > 0) {
-      if (this.buf === '\x1b') {
-        events.push({ type: 'key', input: '', key: makeKey('escape') });
-      } else if (this.buf === '\x1b[') {
-        events.push({ type: 'key', input: '', key: makeKey('[', { meta: true }) });
-      } else if (this.buf === '\x1bO') {
-        events.push({ type: 'key', input: '', key: makeKey('O', { meta: true }) });
+      if (this.buf === "\x1b") {
+        events.push({ type: "key", input: "", key: makeKey("escape") });
+      } else if (this.buf === "\x1b[") {
+        events.push({
+          type: "key",
+          input: "",
+          key: makeKey("[", { meta: true }),
+        });
+      } else if (this.buf === "\x1bO") {
+        events.push({
+          type: "key",
+          input: "",
+          key: makeKey("O", { meta: true }),
+        });
       }
-      this.buf = '';
+      this.buf = "";
     }
     return events;
   }
@@ -173,18 +192,25 @@ export class InputParser {
     while (this.buf.length > 0) {
       // 1. Bracketed paste mode active
       if (this.inPasteMode) {
-        const termIdx = this.buf.indexOf('\x1b[201~');
+        const termIdx = this.buf.indexOf("\x1b[201~");
         if (termIdx !== -1) {
           this.pasteBuf += this.buf.slice(0, termIdx);
           this.buf = this.buf.slice(termIdx + 6);
           this.inPasteMode = false;
-          events.push({ type: 'paste', text: sanitizePaste(this.pasteBuf) });
-          this.pasteBuf = '';
+          events.push({ type: "paste", text: sanitizePaste(this.pasteBuf) });
+          this.pasteBuf = "";
           continue;
         }
 
         // Check if buffer ends with a partial prefix of '\x1b[201~'
-        const termPrefixes = ['\x1b[201~', '\x1b[201', '\x1b[20', '\x1b[2', '\x1b[', '\x1b'];
+        const termPrefixes = [
+          "\x1b[201~",
+          "\x1b[201",
+          "\x1b[20",
+          "\x1b[2",
+          "\x1b[",
+          "\x1b",
+        ];
         let holdback = 0;
         for (const prefix of termPrefixes) {
           if (this.buf.endsWith(prefix)) {
@@ -198,8 +224,8 @@ export class InputParser {
         this.buf = this.buf.slice(this.buf.length - holdback);
 
         if (this.pasteBuf.length >= MAX_PASTE_CHARS) {
-          events.push({ type: 'paste', text: sanitizePaste(this.pasteBuf) });
-          this.pasteBuf = '';
+          events.push({ type: "paste", text: sanitizePaste(this.pasteBuf) });
+          this.pasteBuf = "";
         }
         break;
       }
@@ -214,12 +240,12 @@ export class InputParser {
         const second = this.buf[1]!;
 
         // 2A. CSI Sequence (\x1b[...)
-        if (second === '[') {
+        if (second === "[") {
           // Check for bracketed paste start '\x1b[200~'
-          if (this.buf.startsWith('\x1b[200~')) {
+          if (this.buf.startsWith("\x1b[200~")) {
             this.buf = this.buf.slice(6);
             this.inPasteMode = true;
-            this.pasteBuf = '';
+            this.pasteBuf = "";
             continue;
           }
 
@@ -236,7 +262,7 @@ export class InputParser {
           if (finalIdx === -1) {
             if (this.buf.length >= MAX_SEQUENCE_BYTES) {
               // Overflow safety: discard un-terminated sequence
-              this.buf = '';
+              this.buf = "";
             }
             break; // Incomplete CSI, wait for more data
           }
@@ -246,8 +272,11 @@ export class InputParser {
           this.buf = this.buf.slice(finalIdx + 1);
 
           // SGR Mouse: \x1b[<b;x;yM or \x1b[<b;x;ym
-          if (body.startsWith('<') && (finalChar === 'M' || finalChar === 'm')) {
-            const parts = body.slice(1).split(';');
+          if (
+            body.startsWith("<") &&
+            (finalChar === "M" || finalChar === "m")
+          ) {
+            const parts = body.slice(1).split(";");
             if (parts.length >= 3) {
               const b = parseInt(parts[0]!, 10) || 0;
               const col = parseInt(parts[1]!, 10) || 1;
@@ -259,53 +288,53 @@ export class InputParser {
               const isMotion = (b & 32) !== 0;
               const isWheel = (b & 64) !== 0;
 
-              let action: 'press' | 'release' | 'move' | 'wheel';
+              let action: "press" | "release" | "move" | "wheel";
               let button:
-                | 'left'
-                | 'middle'
-                | 'right'
-                | 'none'
-                | 'wheelUp'
-                | 'wheelDown'
-                | 'wheelLeft'
-                | 'wheelRight';
+                | "left"
+                | "middle"
+                | "right"
+                | "none"
+                | "wheelUp"
+                | "wheelDown"
+                | "wheelLeft"
+                | "wheelRight";
 
               if (isWheel) {
-                action = 'wheel';
+                action = "wheel";
                 const wheelCode = b & 3;
-                if (wheelCode === 0) button = 'wheelUp';
-                else if (wheelCode === 1) button = 'wheelDown';
-                else if (wheelCode === 2) button = 'wheelLeft';
-                else button = 'wheelRight';
+                if (wheelCode === 0) button = "wheelUp";
+                else if (wheelCode === 1) button = "wheelDown";
+                else if (wheelCode === 2) button = "wheelLeft";
+                else button = "wheelRight";
               } else if (isMotion) {
-                action = 'move';
-                button = 'none';
-              } else if (finalChar === 'm') {
-                action = 'release';
+                action = "move";
+                button = "none";
+              } else if (finalChar === "m") {
+                action = "release";
                 const btnCode = b & 3;
                 button =
                   btnCode === 0
-                    ? 'left'
+                    ? "left"
                     : btnCode === 1
-                      ? 'middle'
+                      ? "middle"
                       : btnCode === 2
-                        ? 'right'
-                        : 'none';
+                        ? "right"
+                        : "none";
               } else {
-                action = 'press';
+                action = "press";
                 const btnCode = b & 3;
                 button =
                   btnCode === 0
-                    ? 'left'
+                    ? "left"
                     : btnCode === 1
-                      ? 'middle'
+                      ? "middle"
                       : btnCode === 2
-                        ? 'right'
-                        : 'none';
+                        ? "right"
+                        : "none";
               }
 
               events.push({
-                type: 'mouse',
+                type: "mouse",
                 action,
                 button,
                 col,
@@ -319,10 +348,10 @@ export class InputParser {
           }
 
           // Legacy X10 Mouse: \x1b[M followed by 3 bytes
-          if (body === '' && finalChar === 'M') {
+          if (body === "" && finalChar === "M") {
             if (this.buf.length < 3) {
               // Put back the \x1b[M and wait for payload bytes
-              this.buf = '\x1b[M' + this.buf;
+              this.buf = "\x1b[M" + this.buf;
               break;
             }
             // Consume 3 bytes and discard
@@ -331,18 +360,18 @@ export class InputParser {
           }
 
           // Focus In / Out: \x1b[I / \x1b[O
-          if (body === '' && finalChar === 'I') {
-            events.push({ type: 'focus', focused: true });
+          if (body === "" && finalChar === "I") {
+            events.push({ type: "focus", focused: true });
             continue;
           }
-          if (body === '' && finalChar === 'O') {
-            events.push({ type: 'focus', focused: false });
+          if (body === "" && finalChar === "O") {
+            events.push({ type: "focus", focused: false });
             continue;
           }
 
           // CSI-u: \x1b[<codepoint>[;<mod>]u
-          if (finalChar === 'u') {
-            const parts = body.split(';');
+          if (finalChar === "u") {
+            const parts = body.split(";");
             const codepoint = parseInt(parts[0]!, 10);
             if (!isNaN(codepoint)) {
               const mod = parts.length > 1 ? parseInt(parts[1]!, 10) : 1;
@@ -350,8 +379,8 @@ export class InputParser {
               const char = String.fromCodePoint(codepoint);
               const isPlainChar = !mods.ctrl && !mods.meta;
               events.push({
-                type: 'key',
-                input: isPlainChar ? char : '',
+                type: "key",
+                input: isPlainChar ? char : "",
                 key: makeKey(char, mods),
               });
             }
@@ -359,53 +388,53 @@ export class InputParser {
           }
 
           // Arrows & Standard Keys: A (Up), B (Down), C (Right), D (Left), H (Home), F (End)
-          if (['A', 'B', 'C', 'D', 'H', 'F'].includes(finalChar)) {
+          if (["A", "B", "C", "D", "H", "F"].includes(finalChar)) {
             let mods = { ctrl: false, meta: false, shift: false };
-            if (body.includes(';')) {
-              const parts = body.split(';');
+            if (body.includes(";")) {
+              const parts = body.split(";");
               const modNum = parseInt(parts[1]!, 10);
               if (!isNaN(modNum)) {
                 mods = decodeModifiers(modNum);
               }
             }
-            let name = 'up';
-            if (finalChar === 'B') name = 'down';
-            else if (finalChar === 'C') name = 'right';
-            else if (finalChar === 'D') name = 'left';
-            else if (finalChar === 'H') name = 'home';
-            else if (finalChar === 'F') name = 'end';
+            let name = "up";
+            if (finalChar === "B") name = "down";
+            else if (finalChar === "C") name = "right";
+            else if (finalChar === "D") name = "left";
+            else if (finalChar === "H") name = "home";
+            else if (finalChar === "F") name = "end";
 
             events.push({
-              type: 'key',
-              input: '',
+              type: "key",
+              input: "",
               key: makeKey(name, mods),
             });
             continue;
           }
 
           // Tilde ~ keys: PageUp, PageDown, Delete, Insert, Home, End, F-keys
-          if (finalChar === '~') {
-            const parts = body.split(';');
+          if (finalChar === "~") {
+            const parts = body.split(";");
             const code = parseInt(parts[0]!, 10);
             const mod = parts.length > 1 ? parseInt(parts[1]!, 10) : 1;
             const mods = decodeModifiers(mod);
 
-            let name = '';
-            if (code === 1 || code === 7) name = 'home';
-            else if (code === 2) name = 'insert';
-            else if (code === 3) name = 'delete';
-            else if (code === 4 || code === 8) name = 'end';
-            else if (code === 5) name = 'pageup';
-            else if (code === 6) name = 'pagedown';
+            let name = "";
+            if (code === 1 || code === 7) name = "home";
+            else if (code === 2) name = "insert";
+            else if (code === 3) name = "delete";
+            else if (code === 4 || code === 8) name = "end";
+            else if (code === 5) name = "pageup";
+            else if (code === 6) name = "pagedown";
             else if (code >= 11 && code <= 15) name = `f${code - 10}`;
             else if (code >= 17 && code <= 21) name = `f${code - 11}`;
-            else if (code === 23) name = 'f11';
-            else if (code === 24) name = 'f12';
+            else if (code === 23) name = "f11";
+            else if (code === 24) name = "f12";
 
             if (name) {
               events.push({
-                type: 'key',
-                input: '',
+                type: "key",
+                input: "",
                 key: makeKey(name, mods),
               });
             }
@@ -413,11 +442,11 @@ export class InputParser {
           }
 
           // Shift+Tab: \x1b[Z
-          if (finalChar === 'Z') {
+          if (finalChar === "Z") {
             events.push({
-              type: 'key',
-              input: '',
-              key: makeKey('tab', { shift: true }),
+              type: "key",
+              input: "",
+              key: makeKey("tab", { shift: true }),
             });
             continue;
           }
@@ -427,29 +456,29 @@ export class InputParser {
         }
 
         // 2B. SS3 Sequences (\x1bO...)
-        if (second === 'O') {
+        if (second === "O") {
           if (this.buf.length < 3) {
             break; // Pending SS3
           }
           const finalChar = this.buf[2]!;
           this.buf = this.buf.slice(3);
 
-          let name = '';
-          if (finalChar === 'A') name = 'up';
-          else if (finalChar === 'B') name = 'down';
-          else if (finalChar === 'C') name = 'right';
-          else if (finalChar === 'D') name = 'left';
-          else if (finalChar === 'H') name = 'home';
-          else if (finalChar === 'F') name = 'end';
-          else if (finalChar === 'P') name = 'f1';
-          else if (finalChar === 'Q') name = 'f2';
-          else if (finalChar === 'R') name = 'f3';
-          else if (finalChar === 'S') name = 'f4';
+          let name = "";
+          if (finalChar === "A") name = "up";
+          else if (finalChar === "B") name = "down";
+          else if (finalChar === "C") name = "right";
+          else if (finalChar === "D") name = "left";
+          else if (finalChar === "H") name = "home";
+          else if (finalChar === "F") name = "end";
+          else if (finalChar === "P") name = "f1";
+          else if (finalChar === "Q") name = "f2";
+          else if (finalChar === "R") name = "f3";
+          else if (finalChar === "S") name = "f4";
 
           if (name) {
             events.push({
-              type: 'key',
-              input: '',
+              type: "key",
+              input: "",
               key: makeKey(name),
             });
           }
@@ -457,10 +486,10 @@ export class InputParser {
         }
 
         // 2C. String sequences: OSC (]), DCS (P), APC (_), PM (^), SOS (X)
-        if ([']', 'P', '_', '^', 'X'].includes(second)) {
+        if (["]", "P", "_", "^", "X"].includes(second)) {
           // Look for BEL (\x07) or ST (\x1b\\)
-          const belIdx = this.buf.indexOf('\x07');
-          const stIdx = this.buf.indexOf('\x1b\\');
+          const belIdx = this.buf.indexOf("\x07");
+          const stIdx = this.buf.indexOf("\x1b\\");
           let termIdx = -1;
           let termLen = 1;
 
@@ -478,34 +507,46 @@ export class InputParser {
           }
 
           if (this.buf.length >= MAX_SEQUENCE_BYTES) {
-            this.buf = '';
+            this.buf = "";
           }
           break; // Pending string sequence
         }
 
         // 2D. Alt+Escape: \x1b\x1b
-        if (second === '\x1b') {
+        if (second === "\x1b") {
           this.buf = this.buf.slice(2);
           events.push({
-            type: 'key',
-            input: '',
-            key: makeKey('escape', { meta: true }),
+            type: "key",
+            input: "",
+            key: makeKey("escape", { meta: true }),
           });
           continue;
         }
 
         // 2E. Alt + Key / Alt + Control character: \x1b<char>
         this.buf = this.buf.slice(2);
-        if (second === '\r' || second === '\n') {
-          events.push({ type: 'key', input: '', key: makeKey('return', { meta: true }) });
-        } else if (second === '\t') {
-          events.push({ type: 'key', input: '', key: makeKey('tab', { meta: true }) });
-        } else if (second === '\x08' || second === '\x7f') {
-          events.push({ type: 'key', input: '', key: makeKey('backspace', { meta: true }) });
+        if (second === "\r" || second === "\n") {
+          events.push({
+            type: "key",
+            input: "",
+            key: makeKey("return", { meta: true }),
+          });
+        } else if (second === "\t") {
+          events.push({
+            type: "key",
+            input: "",
+            key: makeKey("tab", { meta: true }),
+          });
+        } else if (second === "\x08" || second === "\x7f") {
+          events.push({
+            type: "key",
+            input: "",
+            key: makeKey("backspace", { meta: true }),
+          });
         } else {
           events.push({
-            type: 'key',
-            input: '',
+            type: "key",
+            input: "",
             key: makeKey(second, { meta: true }),
           });
         }
@@ -519,9 +560,9 @@ export class InputParser {
       if (code === 0x0d || code === 0x0a) {
         this.buf = this.buf.slice(1);
         events.push({
-          type: 'key',
-          input: '',
-          key: makeKey('return'),
+          type: "key",
+          input: "",
+          key: makeKey("return"),
         });
         continue;
       }
@@ -530,9 +571,9 @@ export class InputParser {
       if (code === 0x09) {
         this.buf = this.buf.slice(1);
         events.push({
-          type: 'key',
-          input: '',
-          key: makeKey('tab'),
+          type: "key",
+          input: "",
+          key: makeKey("tab"),
         });
         continue;
       }
@@ -541,9 +582,9 @@ export class InputParser {
       if (code === 0x08 || code === 0x7f) {
         this.buf = this.buf.slice(1);
         events.push({
-          type: 'key',
-          input: '',
-          key: makeKey('backspace'),
+          type: "key",
+          input: "",
+          key: makeKey("backspace"),
         });
         continue;
       }
@@ -552,9 +593,9 @@ export class InputParser {
       if (code === 0x00) {
         this.buf = this.buf.slice(1);
         events.push({
-          type: 'key',
-          input: '',
-          key: makeKey('space', { ctrl: true }),
+          type: "key",
+          input: "",
+          key: makeKey("space", { ctrl: true }),
         });
         continue;
       }
@@ -564,8 +605,8 @@ export class InputParser {
         const letter = String.fromCharCode(96 + code); // 1 -> 'a'
         this.buf = this.buf.slice(1);
         events.push({
-          type: 'key',
-          input: '',
+          type: "key",
+          input: "",
           key: makeKey(letter, { ctrl: true }),
         });
         continue;
@@ -574,16 +615,16 @@ export class InputParser {
       // Ctrl+\, Ctrl+], Ctrl+^, Ctrl+_: 0x1C - 0x1F
       if (code >= 0x1c && code <= 0x1f) {
         const charMap: Record<number, string> = {
-          0x1c: '\\',
-          0x1d: ']',
-          0x1e: '^',
-          0x1f: '_',
+          0x1c: "\\",
+          0x1d: "]",
+          0x1e: "^",
+          0x1f: "_",
         };
         const letter = charMap[code]!;
         this.buf = this.buf.slice(1);
         events.push({
-          type: 'key',
-          input: '',
+          type: "key",
+          input: "",
           key: makeKey(letter, { ctrl: true }),
         });
         continue;
@@ -598,9 +639,9 @@ export class InputParser {
       const char = String.fromCodePoint(point);
       this.buf = this.buf.slice(char.length);
 
-      const shift = char >= 'A' && char <= 'Z';
+      const shift = char >= "A" && char <= "Z";
       events.push({
-        type: 'key',
+        type: "key",
         input: char,
         key: makeKey(char, { shift }),
       });

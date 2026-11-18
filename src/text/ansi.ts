@@ -3,7 +3,7 @@
  */
 
 export interface AnsiToken {
-  type: 'ansi' | 'grapheme';
+  type: "ansi" | "grapheme";
   value: string;
   width: number;
 }
@@ -23,8 +23,8 @@ export class SgrState {
     const match = sgrSequence.match(/^\x1b\[([0-9;]*)m$/);
     if (!match) return;
 
-    const rawParams = match[1] || '0';
-    const params = rawParams.split(';').map((p) => parseInt(p, 10) || 0);
+    const rawParams = match[1] || "0";
+    const params = rawParams.split(";").map((p) => parseInt(p, 10) || 0);
 
     let i = 0;
     while (i < params.length) {
@@ -43,18 +43,18 @@ export class SgrState {
       ) {
         this.modifiers.add(`\x1b[${code}m`);
       } else if (code === 22) {
-        this.modifiers.delete('\x1b[1m');
-        this.modifiers.delete('\x1b[2m');
+        this.modifiers.delete("\x1b[1m");
+        this.modifiers.delete("\x1b[2m");
       } else if (code === 23) {
-        this.modifiers.delete('\x1b[3m');
+        this.modifiers.delete("\x1b[3m");
       } else if (code === 24) {
-        this.modifiers.delete('\x1b[4m');
+        this.modifiers.delete("\x1b[4m");
       } else if (code === 27) {
-        this.modifiers.delete('\x1b[7m');
+        this.modifiers.delete("\x1b[7m");
       } else if (code === 28) {
-        this.modifiers.delete('\x1b[8m');
+        this.modifiers.delete("\x1b[8m");
       } else if (code === 29) {
-        this.modifiers.delete('\x1b[9m');
+        this.modifiers.delete("\x1b[9m");
       } else if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) {
         this.fg = `\x1b[${code}m`;
       } else if (code === 38) {
@@ -94,7 +94,7 @@ export class SgrState {
   }
 
   toString(): string {
-    let s = '';
+    let s = "";
     if (this.fg) s += this.fg;
     if (this.bg) s += this.bg;
     for (const mod of this.modifiers) {
@@ -114,6 +114,6 @@ export const ANSI_ESCAPE_REGEX =
  * Strips all ANSI escape sequences from a string without external dependencies.
  */
 export function stripAnsi(text: string): string {
-  if (!text || !text.includes('\x1b')) return text;
-  return text.replace(ANSI_ESCAPE_REGEX, '');
+  if (!text || !text.includes("\x1b")) return text;
+  return text.replace(ANSI_ESCAPE_REGEX, "");
 }

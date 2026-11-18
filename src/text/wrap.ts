@@ -1,12 +1,12 @@
-import { SgrState } from './ansi.js';
+import { SgrState } from "./ansi.js";
 import {
   expandTabs,
   graphemeWidth,
   segmentGraphemes,
   visibleWidth,
   visibleColumnAtOffset,
-} from './width.js';
-import { RESET_SGR } from '../terminal/sequences.js';
+} from "./width.js";
+import { RESET_SGR } from "../terminal/sequences.js";
 
 export interface WrapResultWithCursor {
   segments: string[];
@@ -14,7 +14,7 @@ export interface WrapResultWithCursor {
 }
 
 interface AnsiWrapToken {
-  type: 'ansi' | 'grapheme';
+  type: "ansi" | "grapheme";
   value: string;
   width: number;
 }
@@ -39,14 +39,14 @@ function tokenizeText(text: string): AnsiWrapToken[] {
       const plain = text.slice(lastIndex, match.index);
       for (const g of segmentGraphemes(plain)) {
         tokens.push({
-          type: 'grapheme',
+          type: "grapheme",
           value: g,
           width: graphemeWidth(g),
         });
       }
     }
     tokens.push({
-      type: 'ansi',
+      type: "ansi",
       value: match[0],
       width: 0,
     });
@@ -57,7 +57,7 @@ function tokenizeText(text: string): AnsiWrapToken[] {
     const plain = text.slice(lastIndex);
     for (const g of segmentGraphemes(plain)) {
       tokens.push({
-        type: 'grapheme',
+        type: "grapheme",
         value: g,
         width: graphemeWidth(g),
       });
@@ -75,7 +75,7 @@ function groupIntoChunks(tokens: AnsiWrapToken[]): LayoutChunk[] {
   let currentChunk: LayoutChunk | null = null;
 
   for (const token of tokens) {
-    if (token.type === 'ansi') {
+    if (token.type === "ansi") {
       if (!currentChunk) {
         currentChunk = { isSpace: false, tokens: [], width: 0 };
       }
@@ -83,7 +83,7 @@ function groupIntoChunks(tokens: AnsiWrapToken[]): LayoutChunk[] {
       continue;
     }
 
-    const isSpace = token.value === ' ';
+    const isSpace = token.value === " ";
     if (!currentChunk || currentChunk.isSpace !== isSpace) {
       if (currentChunk && currentChunk.tokens.length > 0) {
         chunks.push(currentChunk);
@@ -114,12 +114,13 @@ export function wrapVisualLineWithCursor(
   hangingIndent: number | string = 0,
 ): WrapResultWithCursor {
   // Normalize line breaks while strictly preserving character offsets
-  text = expandTabs(text.replace(/\r\n/g, '  ').replace(/\r|\n/g, ' '));
+  text = expandTabs(text.replace(/\r\n/g, "  ").replace(/\r|\n/g, " "));
 
   if (text.length === 0) {
     return {
-      segments: [''],
-      cursorInLine: targetCharOffset !== null ? { segmentIndex: 0, column: 1 } : null,
+      segments: [""],
+      cursorInLine:
+        targetCharOffset !== null ? { segmentIndex: 0, column: 1 } : null,
     };
   }
   if (maxCols <= 0) {
@@ -136,11 +137,11 @@ export function wrapVisualLineWithCursor(
   }
 
   const continuationIndent =
-    typeof hangingIndent === 'number'
+    typeof hangingIndent === "number"
       ? hangingIndent > 0
-        ? ' '.repeat(hangingIndent)
-        : ''
-      : (hangingIndent ?? '');
+        ? " ".repeat(hangingIndent)
+        : ""
+      : (hangingIndent ?? "");
 
   const tokens = tokenizeText(text);
   const chunks = groupIntoChunks(tokens);
@@ -157,7 +158,7 @@ export function wrapVisualLineWithCursor(
 
   function emitCurrentLine() {
     const activeStyleStr = sgrState.toString();
-    let lineStr = currentTokens.map((t) => t.value).join('');
+    let lineStr = currentTokens.map((t) => t.value).join("");
     if (activeStyleStr.length > 0 && !lineStr.endsWith(RESET_SGR)) {
       lineStr += RESET_SGR;
     }
@@ -169,7 +170,7 @@ export function wrapVisualLineWithCursor(
     // Apply hanging continuation indent to next line
     if (continuationIndent) {
       if (activeStyleStr.length > 0) {
-        currentTokens.push({ type: 'ansi', value: activeStyleStr, width: 0 });
+        currentTokens.push({ type: "ansi", value: activeStyleStr, width: 0 });
       }
       const contTokens = tokenizeText(continuationIndent);
       for (const t of contTokens) {
@@ -177,12 +178,16 @@ export function wrapVisualLineWithCursor(
       }
       currentWidth = visibleWidth(continuationIndent);
     } else if (activeStyleStr.length > 0) {
-      currentTokens.push({ type: 'ansi', value: activeStyleStr, width: 0 });
+      currentTokens.push({ type: "ansi", value: activeStyleStr, width: 0 });
     }
   }
 
   function checkCursorAtCurrentToken() {
-    if (targetCharOffset !== null && !cursorFound && plainCharIndex === targetCharOffset) {
+    if (
+      targetCharOffset !== null &&
+      !cursorFound &&
+      plainCharIndex === targetCharOffset
+    ) {
       cursorFound = true;
       cursorSegment = lines.length;
       cursorColumn = 1 + currentWidth;
@@ -194,7 +199,7 @@ export function wrapVisualLineWithCursor(
       // Leading whitespace (indentation) is always preserved
       if (currentWidth === 0) {
         for (const token of chunk.tokens) {
-          if (token.type === 'ansi') {
+          if (token.type === "ansi") {
             sgrState.apply(token.value);
           } else {
             checkCursorAtCurrentToken();
@@ -205,7 +210,7 @@ export function wrapVisualLineWithCursor(
         }
       } else if (currentWidth + chunk.width <= maxCols) {
         for (const token of chunk.tokens) {
-          if (token.type === 'ansi') {
+          if (token.type === "ansi") {
             sgrState.apply(token.value);
           } else {
             checkCursorAtCurrentToken();
@@ -217,14 +222,14 @@ export function wrapVisualLineWithCursor(
       } else {
         // Trailing whitespace at end of line
         for (const token of chunk.tokens) {
-          if (token.type === 'grapheme') {
+          if (token.type === "grapheme") {
             checkCursorAtCurrentToken();
             plainCharIndex += token.value.length;
           }
         }
         emitCurrentLine();
         for (const token of chunk.tokens) {
-          if (token.type === 'ansi') {
+          if (token.type === "ansi") {
             sgrState.apply(token.value);
             currentTokens.push(token);
           }
@@ -236,7 +241,7 @@ export function wrapVisualLineWithCursor(
     // Word chunk (non-space)
     if (currentWidth + chunk.width <= maxCols) {
       for (const token of chunk.tokens) {
-        if (token.type === 'ansi') {
+        if (token.type === "ansi") {
           sgrState.apply(token.value);
         } else {
           checkCursorAtCurrentToken();
@@ -250,7 +255,7 @@ export function wrapVisualLineWithCursor(
 
       if (currentWidth + chunk.width <= maxCols) {
         for (const token of chunk.tokens) {
-          if (token.type === 'ansi') {
+          if (token.type === "ansi") {
             sgrState.apply(token.value);
           } else {
             checkCursorAtCurrentToken();
@@ -262,7 +267,7 @@ export function wrapVisualLineWithCursor(
       } else {
         // Super-long word: break grapheme-by-grapheme
         for (const token of chunk.tokens) {
-          if (token.type === 'ansi') {
+          if (token.type === "ansi") {
             sgrState.apply(token.value);
             currentTokens.push(token);
             continue;
@@ -279,7 +284,7 @@ export function wrapVisualLineWithCursor(
     } else {
       // Empty line super-long word
       for (const token of chunk.tokens) {
-        if (token.type === 'ansi') {
+        if (token.type === "ansi") {
           sgrState.apply(token.value);
           currentTokens.push(token);
           continue;
@@ -300,14 +305,14 @@ export function wrapVisualLineWithCursor(
     if (sgrState.bg && currentWidth < maxCols) {
       const remainingCols = maxCols - currentWidth;
       currentTokens.push({
-        type: 'grapheme',
-        value: ' '.repeat(remainingCols),
+        type: "grapheme",
+        value: " ".repeat(remainingCols),
         width: remainingCols,
       });
       currentWidth = maxCols;
     }
 
-    let lineStr = currentTokens.map((t) => t.value).join('');
+    let lineStr = currentTokens.map((t) => t.value).join("");
     if (activeStyleStr.length > 0 && !lineStr.endsWith(RESET_SGR)) {
       lineStr += RESET_SGR;
     }
@@ -320,12 +325,15 @@ export function wrapVisualLineWithCursor(
     cursorFound = true;
   }
 
-  const finalColumn = maxCols > 0 ? Math.max(1, Math.min(maxCols, cursorColumn)) : cursorColumn;
+  const finalColumn =
+    maxCols > 0 ? Math.max(1, Math.min(maxCols, cursorColumn)) : cursorColumn;
 
   return {
     segments: lines,
     cursorInLine:
-      targetCharOffset !== null ? { segmentIndex: cursorSegment, column: finalColumn } : null,
+      targetCharOffset !== null
+        ? { segmentIndex: cursorSegment, column: finalColumn }
+        : null,
   };
 }
 

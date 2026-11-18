@@ -1,10 +1,10 @@
-import { useState } from '../hooks/useState.js';
-import { useMemo } from '../hooks/useMemo.js';
-import { useLayoutEffect } from '../hooks/useLayoutEffect.js';
-import { useCommitHistory } from '../hooks/useCommitHistory.js';
-import { Box } from './Box.js';
-import type { BoxProps, StitchableElement } from './types.js';
-import type { ElementChild } from '../types.js';
+import { useState } from "../hooks/useState.js";
+import { useMemo } from "../hooks/useMemo.js";
+import { useLayoutEffect } from "../hooks/useLayoutEffect.js";
+import { useCommitHistory } from "../hooks/useCommitHistory.js";
+import { Box } from "./Box.js";
+import type { BoxProps, StitchableElement } from "./types.js";
+import type { ElementChild } from "../types.js";
 
 export interface StaticProps<T> {
   readonly items: T[];
@@ -32,21 +32,28 @@ export interface StaticProps<T> {
  * </Static>
  * ```
  */
-export function Static<T>(props: StaticProps<T>): StitchableElement<BoxProps> | null {
+export function Static<T>(
+  props: StaticProps<T>,
+): StitchableElement<BoxProps> | null {
   const { items, children: renderItem, style: customStyle, wrap, clip } = props;
   const [lastCommittedIndex, setLastCommittedIndex] = useState(0);
 
-  const newItems = useMemo(() => items.slice(lastCommittedIndex), [items, lastCommittedIndex]);
+  const newItems = useMemo(
+    () => items.slice(lastCommittedIndex),
+    [items, lastCommittedIndex],
+  );
 
   const staticChildren = useMemo(() => {
-    return newItems.map((item, idx) => renderItem(item, lastCommittedIndex + idx));
+    return newItems.map((item, idx) =>
+      renderItem(item, lastCommittedIndex + idx),
+    );
   }, [newItems, renderItem, lastCommittedIndex]);
 
   const staticContent = useMemo(() => {
     if (staticChildren.length === 0) return null;
     return Box(
       {
-        flexDirection: 'column',
+        flexDirection: "column",
         ...customStyle,
       },
       staticChildren,

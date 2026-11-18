@@ -1,7 +1,8 @@
-import type { ElementChild, ElementKey, ElementType } from '../types.js';
-import type Component from '../engine/Component.js';
+import type { ElementChild, ElementKey, ElementType } from "../types.js";
+import type Component from "../engine/Component.js";
 
-export type InstanceTag = 'host' | 'function' | 'class' | 'fragment' | 'text' | 'empty';
+export type InstanceTag =
+  "host" | "function" | "class" | "fragment" | "text" | "empty";
 
 export interface ComponentInstance {
   tag: InstanceTag;

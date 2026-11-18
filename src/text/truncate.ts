@@ -1,9 +1,9 @@
-import { SgrState } from './ansi.js';
-import { graphemeWidth, segmentGraphemes, visibleWidth } from './width.js';
-import { RESET_SGR } from '../terminal/sequences.js';
+import { SgrState } from "./ansi.js";
+import { graphemeWidth, segmentGraphemes, visibleWidth } from "./width.js";
+import { RESET_SGR } from "../terminal/sequences.js";
 
 export interface TruncateOptions {
-  mode?: 'end' | 'start' | 'middle';
+  mode?: "end" | "start" | "middle";
   ellipsis?: string;
 }
 
@@ -16,7 +16,10 @@ interface StyledGrapheme {
 /**
  * Parses an ANSI string into a stream of user-perceived graphemes with their active SGR prefixes.
  */
-function parseStyledGraphemes(text: string): { items: StyledGrapheme[]; finalSgr: string } {
+function parseStyledGraphemes(text: string): {
+  items: StyledGrapheme[];
+  finalSgr: string;
+} {
   const items: StyledGrapheme[] = [];
   const ansiRegex = /\x1b\[[0-9;]*m/g;
   const sgrState = new SgrState();
@@ -56,12 +59,16 @@ function parseStyledGraphemes(text: string): { items: StyledGrapheme[]; finalSgr
  * Truncates an ANSI-styled string to a maximum visible column width,
  * honoring grapheme boundaries, ellipsis, and ANSI escape state.
  */
-export function truncate(text: string, maxWidth: number, options: TruncateOptions = {}): string {
-  if (maxWidth <= 0) return '';
+export function truncate(
+  text: string,
+  maxWidth: number,
+  options: TruncateOptions = {},
+): string {
+  if (maxWidth <= 0) return "";
   if (visibleWidth(text) <= maxWidth) return text;
 
-  const mode = options.mode ?? 'end';
-  const ellipsis = options.ellipsis ?? '…';
+  const mode = options.mode ?? "end";
+  const ellipsis = options.ellipsis ?? "…";
   const ellipsisWidth = visibleWidth(ellipsis);
 
   if (maxWidth <= ellipsisWidth) {
@@ -72,10 +79,10 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
   const availableContentWidth = maxWidth - ellipsisWidth;
   const { items } = parseStyledGraphemes(text);
 
-  if (mode === 'end') {
-    let result = '';
+  if (mode === "end") {
+    let result = "";
     let currentWidth = 0;
-    let currentStyle = '';
+    let currentStyle = "";
 
     for (const item of items) {
       if (currentWidth + item.width > availableContentWidth) {
@@ -85,7 +92,7 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
         if (currentStyle && !item.sgrBefore) {
           result += RESET_SGR;
         } else if (item.sgrBefore) {
-          result += (currentStyle ? RESET_SGR : '') + item.sgrBefore;
+          result += (currentStyle ? RESET_SGR : "") + item.sgrBefore;
         }
         currentStyle = item.sgrBefore;
       }
@@ -93,11 +100,11 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
       currentWidth += item.width;
     }
 
-    result += (currentStyle ? RESET_SGR : '') + ellipsis;
+    result += (currentStyle ? RESET_SGR : "") + ellipsis;
     return result;
   }
 
-  if (mode === 'start') {
+  if (mode === "start") {
     let currentWidth = 0;
     const chosen: StyledGrapheme[] = [];
 
@@ -111,14 +118,14 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
     }
 
     let result = ellipsis;
-    let currentStyle = '';
+    let currentStyle = "";
 
     for (const item of chosen) {
       if (item.sgrBefore !== currentStyle) {
         if (currentStyle && !item.sgrBefore) {
           result += RESET_SGR;
         } else if (item.sgrBefore) {
-          result += (currentStyle ? RESET_SGR : '') + item.sgrBefore;
+          result += (currentStyle ? RESET_SGR : "") + item.sgrBefore;
         }
         currentStyle = item.sgrBefore;
       }
@@ -129,7 +136,7 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
     return result;
   }
 
-  if (mode === 'middle') {
+  if (mode === "middle") {
     const half = Math.floor(availableContentWidth / 2);
     const leftTarget = half;
     const rightTarget = availableContentWidth - leftTarget;
@@ -151,30 +158,30 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
       rightWidth += item.width;
     }
 
-    let result = '';
-    let currentStyle = '';
+    let result = "";
+    let currentStyle = "";
 
     for (const item of leftChosen) {
       if (item.sgrBefore !== currentStyle) {
         if (currentStyle && !item.sgrBefore) {
           result += RESET_SGR;
         } else if (item.sgrBefore) {
-          result += (currentStyle ? RESET_SGR : '') + item.sgrBefore;
+          result += (currentStyle ? RESET_SGR : "") + item.sgrBefore;
         }
         currentStyle = item.sgrBefore;
       }
       result += item.grapheme;
     }
 
-    result += (currentStyle ? RESET_SGR : '') + ellipsis;
-    currentStyle = '';
+    result += (currentStyle ? RESET_SGR : "") + ellipsis;
+    currentStyle = "";
 
     for (const item of rightChosen) {
       if (item.sgrBefore !== currentStyle) {
         if (currentStyle && !item.sgrBefore) {
           result += RESET_SGR;
         } else if (item.sgrBefore) {
-          result += (currentStyle ? RESET_SGR : '') + item.sgrBefore;
+          result += (currentStyle ? RESET_SGR : "") + item.sgrBefore;
         }
         currentStyle = item.sgrBefore;
       }
@@ -192,7 +199,7 @@ export function truncate(text: string, maxWidth: number, options: TruncateOption
  * Backward-compatible alias for truncateToWidth.
  */
 export function truncateToWidth(text: string, maxWidth: number): string {
-  if (maxWidth <= 0) return '';
+  if (maxWidth <= 0) return "";
   if (visibleWidth(text) <= maxWidth) return text;
-  return truncate(text, maxWidth, { mode: 'end', ellipsis: '' });
+  return truncate(text, maxWidth, { mode: "end", ellipsis: "" });
 }

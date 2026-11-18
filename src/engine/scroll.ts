@@ -12,7 +12,7 @@ export interface ResolveParams {
 }
 
 export class ScrollModel {
-  private mode: 'follow' | 'anchored' = 'follow';
+  private mode: "follow" | "anchored" = "follow";
   private topId = 0;
   private isSentinelTop = false;
   private lastSnapshot = {
@@ -36,15 +36,18 @@ export class ScrollModel {
     const targetOffset = this.lastSnapshot.offset + delta;
 
     if (targetOffset <= 0) {
-      this.mode = 'follow';
+      this.mode = "follow";
       this.lastSnapshot.offset = 0;
     } else {
-      this.mode = 'anchored';
+      this.mode = "anchored";
       const clamped = Math.min(targetOffset, this.lastSnapshot.max);
       this.lastSnapshot.offset = clamped;
       this.topId =
         this.lastSnapshot.pruned +
-        Math.max(0, this.lastSnapshot.totalRows - clamped - this.lastSnapshot.rows);
+        Math.max(
+          0,
+          this.lastSnapshot.totalRows - clamped - this.lastSnapshot.rows,
+        );
     }
   }
 
@@ -56,15 +59,18 @@ export class ScrollModel {
 
     this.isSentinelTop = false;
     if (offset <= 0) {
-      this.mode = 'follow';
+      this.mode = "follow";
       this.lastSnapshot.offset = 0;
     } else {
-      this.mode = 'anchored';
+      this.mode = "anchored";
       const clamped = Math.min(offset, this.lastSnapshot.max);
       this.lastSnapshot.offset = clamped;
       this.topId =
         this.lastSnapshot.pruned +
-        Math.max(0, this.lastSnapshot.totalRows - clamped - this.lastSnapshot.rows);
+        Math.max(
+          0,
+          this.lastSnapshot.totalRows - clamped - this.lastSnapshot.rows,
+        );
     }
   }
 
@@ -72,7 +78,7 @@ export class ScrollModel {
    * Scroll all the way to the top of history.
    */
   toTop(): void {
-    this.mode = 'anchored';
+    this.mode = "anchored";
     this.isSentinelTop = true;
   }
 
@@ -80,7 +86,7 @@ export class ScrollModel {
    * Scroll to the live bottom (following mode).
    */
   toBottom(): void {
-    this.mode = 'follow';
+    this.mode = "follow";
     this.isSentinelTop = false;
     this.lastSnapshot.offset = 0;
   }
@@ -96,10 +102,10 @@ export class ScrollModel {
 
     if (this.isSentinelTop) {
       this.isSentinelTop = false;
-      this.mode = 'anchored';
+      this.mode = "anchored";
       this.topId = f.pruned;
       offset = M;
-    } else if (this.mode === 'follow') {
+    } else if (this.mode === "follow") {
       offset = 0;
     } else {
       // Anchored mode
@@ -111,15 +117,18 @@ export class ScrollModel {
         // Width changed: anchoring by ID is invalid after reflow -> keep previous offset clamped
         offset = Math.max(0, Math.min(this.lastSnapshot.offset, M));
         if (offset === 0) {
-          this.mode = 'follow';
+          this.mode = "follow";
         } else {
           this.topId = f.pruned + Math.max(0, f.total - offset - safeRows);
         }
       } else {
         // Unchanged width: anchor by absolute top row ID
-        offset = Math.max(0, Math.min(M, f.total - safeRows - (this.topId - f.pruned)));
+        offset = Math.max(
+          0,
+          Math.min(M, f.total - safeRows - (this.topId - f.pruned)),
+        );
         if (offset === 0) {
-          this.mode = 'follow';
+          this.mode = "follow";
         } else if (offset === M) {
           this.topId = f.pruned;
         }

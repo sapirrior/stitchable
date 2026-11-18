@@ -1,8 +1,13 @@
-import type { FunctionComponent } from '../types.js';
+import type { FunctionComponent } from "../types.js";
 
 export function shallowEqual(objA: any, objB: any): boolean {
   if (Object.is(objA, objB)) return true;
-  if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
+  if (
+    typeof objA !== "object" ||
+    objA === null ||
+    typeof objB !== "object" ||
+    objB === null
+  ) {
     return false;
   }
 
@@ -13,7 +18,10 @@ export function shallowEqual(objA: any, objB: any): boolean {
 
   for (let i = 0; i < keysA.length; i++) {
     const key = keysA[i];
-    if (!Object.prototype.hasOwnProperty.call(objB, key) || !Object.is(objA[key], objB[key])) {
+    if (
+      !Object.prototype.hasOwnProperty.call(objB, key) ||
+      !Object.is(objA[key], objB[key])
+    ) {
       return false;
     }
   }

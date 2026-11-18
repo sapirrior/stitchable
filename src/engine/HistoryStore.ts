@@ -29,7 +29,10 @@ export class HistoryStore {
     this.totalLineCount += lines.length;
 
     if (this.historyLimit && this.historyLimit > 0) {
-      while (this.totalLineCount > this.historyLimit && this.entries.length > 1) {
+      while (
+        this.totalLineCount > this.historyLimit &&
+        this.entries.length > 1
+      ) {
         const removed = this.entries.shift();
         if (removed) {
           this.totalLineCount -= removed.lines.length;

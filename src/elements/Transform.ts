@@ -1,5 +1,10 @@
-import type { TransformProps, StitchableElement, Block, RenderContext } from './types.js';
-import { visibleWidth } from '../text/width.js';
+import type {
+  TransformProps,
+  StitchableElement,
+  Block,
+  RenderContext,
+} from "./types.js";
+import { visibleWidth } from "../text/width.js";
 
 export function renderTransformElement(
   element: StitchableElement<TransformProps>,
@@ -10,7 +15,9 @@ export function renderTransformElement(
   const children = element.props?.children ?? element.children;
 
   const childBlock = renderChild(children, context);
-  const transformedLines = childBlock.lines.map((line, index) => transform(line, index));
+  const transformedLines = childBlock.lines.map((line, index) =>
+    transform(line, index),
+  );
 
   return {
     lines: transformedLines,

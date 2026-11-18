@@ -1,16 +1,25 @@
-import { Fragment, type ElementChild, type ElementKey, type ElementNode } from '../types.js';
-import { isElement, normalizeChildren } from './element.js';
-import { createInstance, type ComponentInstance, type InstanceTag } from './instance.js';
-import { isErrorBoundaryClass, ComponentRenderError } from './errors.js';
-import Component from '../engine/Component.js';
+import {
+  Fragment,
+  type ElementChild,
+  type ElementKey,
+  type ElementNode,
+} from "../types.js";
+import { isElement, normalizeChildren } from "./element.js";
+import {
+  createInstance,
+  type ComponentInstance,
+  type InstanceTag,
+} from "./instance.js";
+import { isErrorBoundaryClass, ComponentRenderError } from "./errors.js";
+import Component from "../engine/Component.js";
 
 import {
   prepareToRenderInstance,
   finishRenderingInstance,
   cleanupInstanceEffects,
-} from './hooks.js';
-import { pushContextValue, popContextValue } from './context.js';
-import { shallowEqual } from './memo.js';
+} from "./hooks.js";
+import { pushContextValue, popContextValue } from "./context.js";
+import { shallowEqual } from "./memo.js";
 
 export interface RuntimeContext {
   scheduleUpdate?(instance?: ComponentInstance): void;
@@ -22,13 +31,13 @@ export function unmountInstance(instance: ComponentInstance | null): void {
 
   cleanupInstanceEffects(instance);
 
-  if (instance.tag === 'class' && instance.classInstance) {
+  if (instance.tag === "class" && instance.classInstance) {
     try {
-      if (typeof instance.classInstance.componentWillUnmount === 'function') {
+      if (typeof instance.classInstance.componentWillUnmount === "function") {
         instance.classInstance.componentWillUnmount();
       }
     } catch (e) {
-      console.error('Error during componentWillUnmount:', e);
+      console.error("Error during componentWillUnmount:", e);
     }
   }
 
@@ -57,24 +66,24 @@ function matchKeyAndType(
 }
 
 function isHostType(type: unknown): boolean {
-  if (typeof type === 'string') {
+  if (typeof type === "string") {
     const lower = type.toLowerCase();
     return (
-      lower === 'box' ||
-      lower === 'text' ||
-      lower === 'spacer' ||
-      lower === 'newline' ||
-      lower === 'transform'
+      lower === "box" ||
+      lower === "text" ||
+      lower === "spacer" ||
+      lower === "newline" ||
+      lower === "transform"
     );
   }
-  if (typeof type === 'function') {
+  if (typeof type === "function") {
     const name = type.name;
     return (
-      name === 'Box' ||
-      name === 'Text' ||
-      name === 'Spacer' ||
-      name === 'Newline' ||
-      name === 'Transform'
+      name === "Box" ||
+      name === "Text" ||
+      name === "Spacer" ||
+      name === "Newline" ||
+      name === "Transform"
     );
   }
   return false;
@@ -86,16 +95,20 @@ export function reconcileInstance(
   parent: ComponentInstance | null,
   runtime: RuntimeContext,
 ): ComponentInstance | null {
-  if (element === null || element === undefined || typeof element === 'boolean') {
+  if (
+    element === null ||
+    element === undefined ||
+    typeof element === "boolean"
+  ) {
     if (prevInstance) {
       unmountInstance(prevInstance);
     }
     return null;
   }
 
-  if (typeof element === 'string' || typeof element === 'number') {
+  if (typeof element === "string" || typeof element === "number") {
     const textVal = String(element);
-    if (prevInstance && prevInstance.tag === 'text') {
+    if (prevInstance && prevInstance.tag === "text") {
       prevInstance.element = textVal;
       prevInstance.props = { text: textVal };
       return prevInstance;
@@ -103,7 +116,14 @@ export function reconcileInstance(
     if (prevInstance) {
       unmountInstance(prevInstance);
     }
-    const inst = createInstance('text', null, null, { text: textVal }, textVal, parent);
+    const inst = createInstance(
+      "text",
+      null,
+      null,
+      { text: textVal },
+      textVal,
+      parent,
+    );
     inst.isMounted = true;
     return inst;
   }
@@ -117,16 +137,23 @@ export function reconcileInstance(
     const { type, key, props, children } = element;
 
     if (type === Fragment) {
-      return reconcileFragment(prevInstance, element, children, parent, runtime);
+      return reconcileFragment(
+        prevInstance,
+        element,
+        children,
+        parent,
+        runtime,
+      );
     }
 
     if (isHostType(type)) {
       return reconcileHost(prevInstance, element, parent, runtime);
     }
 
-    if (typeof type === 'function') {
+    if (typeof type === "function") {
       const isClass =
-        type.prototype && (type.prototype instanceof Component || 'render' in type.prototype);
+        type.prototype &&
+        (type.prototype instanceof Component || "render" in type.prototype);
 
       if (isClass) {
         return reconcileClassComponent(prevInstance, element, parent, runtime);
@@ -138,11 +165,11 @@ export function reconcileInstance(
   }
 
   // Fallback for raw objects or legacy descriptors
-  if (typeof element === 'object') {
+  if (typeof element === "object") {
     if (prevInstance) {
       unmountInstance(prevInstance);
     }
-    const inst = createInstance('host', null, null, {}, element, parent);
+    const inst = createInstance("host", null, null, {}, element, parent);
     inst.isMounted = true;
     return inst;
   }
@@ -163,7 +190,14 @@ function reconcileHost(
     if (inst) {
       unmountInstance(inst);
     }
-    inst = createInstance('host', type, key, props as Record<string, any>, element, parent);
+    inst = createInstance(
+      "host",
+      type,
+      key,
+      props as Record<string, any>,
+      element,
+      parent,
+    );
   } else {
     inst.props = props as Record<string, any>;
     inst.element = element;
@@ -197,7 +231,14 @@ function reconcileFragment(
     if (inst) {
       unmountInstance(inst);
     }
-    inst = createInstance('fragment', type, key, props as Record<string, any>, element, parent);
+    inst = createInstance(
+      "fragment",
+      type,
+      key,
+      props as Record<string, any>,
+      element,
+      parent,
+    );
   } else {
     inst.props = props as Record<string, any>;
     inst.element = element;
@@ -215,11 +256,11 @@ function reconcileArrayChildren(
   runtime: RuntimeContext,
 ): ComponentInstance {
   let inst = prevInstance;
-  if (!inst || inst.tag !== 'fragment') {
+  if (!inst || inst.tag !== "fragment") {
     if (inst) {
       unmountInstance(inst);
     }
-    inst = createInstance('fragment', Fragment, null, {}, elements, parent);
+    inst = createInstance("fragment", Fragment, null, {}, elements, parent);
   }
   inst.children = reconcileChildList(inst.children, elements, inst, runtime);
   inst.isMounted = true;
@@ -227,16 +268,16 @@ function reconcileArrayChildren(
 }
 
 function getComponentName(type: unknown): string {
-  if (typeof type === 'function') {
-    return type.name || 'Anonymous';
+  if (typeof type === "function") {
+    return type.name || "Anonymous";
   }
-  if (typeof type === 'string') {
+  if (typeof type === "string") {
     return type;
   }
-  if (typeof type === 'symbol') {
-    return type.description || 'Symbol';
+  if (typeof type === "symbol") {
+    return type.description || "Symbol";
   }
-  return 'Unknown';
+  return "Unknown";
 }
 
 function reconcileClassComponent(
@@ -253,7 +294,14 @@ function reconcileClassComponent(
     if (inst) {
       unmountInstance(inst);
     }
-    inst = createInstance('class', type, key, props as Record<string, any>, element, parent);
+    inst = createInstance(
+      "class",
+      type,
+      key,
+      props as Record<string, any>,
+      element,
+      parent,
+    );
     const ClassType = type as new (props: any) => Component;
     const classInst = new ClassType(props);
     classInst._updater = {
@@ -278,43 +326,55 @@ function reconcileClassComponent(
 
   try {
     const rendered = inst.classInstance.render();
-    inst.renderedChild = reconcileInstance(inst.renderedChild, rendered, inst, runtime);
+    inst.renderedChild = reconcileInstance(
+      inst.renderedChild,
+      rendered,
+      inst,
+      runtime,
+    );
 
     if (!inst.isMounted) {
       inst.isMounted = true;
-      if (typeof inst.classInstance.componentDidMount === 'function') {
+      if (typeof inst.classInstance.componentDidMount === "function") {
         try {
           inst.classInstance.componentDidMount();
         } catch (e) {
-          console.error('Error in componentDidMount:', e);
+          console.error("Error in componentDidMount:", e);
         }
       }
     } else {
-      if (typeof inst.classInstance.componentDidUpdate === 'function') {
+      if (typeof inst.classInstance.componentDidUpdate === "function") {
         try {
           inst.classInstance.componentDidUpdate(inst.prevProps, inst.prevState);
         } catch (e) {
-          console.error('Error in componentDidUpdate:', e);
+          console.error("Error in componentDidUpdate:", e);
         }
       }
     }
   } catch (err: any) {
     if (isBoundary) {
       const rawError =
-        err instanceof ComponentRenderError && err.originalError ? err.originalError : err;
+        err instanceof ComponentRenderError && err.originalError
+          ? err.originalError
+          : err;
       const boundaryClass = type as any;
-      if (typeof boundaryClass.getDerivedStateFromError === 'function') {
+      if (typeof boundaryClass.getDerivedStateFromError === "function") {
         const partial = boundaryClass.getDerivedStateFromError(rawError);
         inst.classInstance.state = { ...inst.classInstance.state, ...partial };
       }
-      if (typeof inst.classInstance.componentDidCatch === 'function') {
+      if (typeof inst.classInstance.componentDidCatch === "function") {
         inst.classInstance.componentDidCatch(rawError, {
           componentStack: getComponentName(type),
         });
       }
       // Re-render with error state
       const fallbackRendered = inst.classInstance.render();
-      inst.renderedChild = reconcileInstance(inst.renderedChild, fallbackRendered, inst, runtime);
+      inst.renderedChild = reconcileInstance(
+        inst.renderedChild,
+        fallbackRendered,
+        inst,
+        runtime,
+      );
     } else {
       throw err instanceof ComponentRenderError
         ? err
@@ -338,7 +398,14 @@ function reconcileFunctionComponent(
     if (inst) {
       unmountInstance(inst);
     }
-    inst = createInstance('function', type, key, props as Record<string, any>, element, parent);
+    inst = createInstance(
+      "function",
+      type,
+      key,
+      props as Record<string, any>,
+      element,
+      parent,
+    );
   } else {
     inst.props = props as Record<string, any>;
     inst.element = element;
@@ -383,7 +450,12 @@ function reconcileFunctionComponent(
     const rendered = targetFunc(props);
     finishRenderingInstance();
     inst.prevProps = props;
-    inst.renderedChild = reconcileInstance(inst.renderedChild, rendered, inst, runtime);
+    inst.renderedChild = reconcileInstance(
+      inst.renderedChild,
+      rendered,
+      inst,
+      runtime,
+    );
     inst.isMounted = true;
   } catch (err: any) {
     finishRenderingInstance();
@@ -417,7 +489,11 @@ function reconcileChildList(
 
   for (let i = 0; i < nextElements.length; i++) {
     const nextElem = nextElements[i];
-    if (nextElem === null || nextElem === undefined || typeof nextElem === 'boolean') {
+    if (
+      nextElem === null ||
+      nextElem === undefined ||
+      typeof nextElem === "boolean"
+    ) {
       continue;
     }
 
@@ -433,7 +509,12 @@ function reconcileChildList(
       matchingPrev = unkeyedPrev[unkeyedIndex++];
     }
 
-    const reconciled = reconcileInstance(matchingPrev, nextElem, parent, runtime);
+    const reconciled = reconcileInstance(
+      matchingPrev,
+      nextElem,
+      parent,
+      runtime,
+    );
     if (reconciled) {
       result.push(reconciled);
     }

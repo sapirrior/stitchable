@@ -1,4 +1,4 @@
-import type { InputEvent } from '../terminal/input.js';
+import type { InputEvent } from "../terminal/input.js";
 
 export interface InputHandlerRecord {
   handler: (event: InputEvent) => boolean | void;

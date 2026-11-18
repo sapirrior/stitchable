@@ -1,6 +1,6 @@
-import type { ColorLevel, ColorValue } from '../terminal/color.js';
+import type { ColorLevel, ColorValue } from "../terminal/color.js";
 
-export * from '../types.js';
+export * from "../types.js";
 export type { ColorValue };
 
 export interface TextStyleProps {
@@ -15,14 +15,14 @@ export interface TextStyleProps {
 }
 
 export type TextWrapMode =
-  | 'wrap'
-  | 'nowrap'
-  | 'none'
-  | 'hard'
-  | 'truncate'
-  | 'truncate-start'
-  | 'truncate-middle'
-  | 'truncate-end';
+  | "wrap"
+  | "nowrap"
+  | "none"
+  | "hard"
+  | "truncate"
+  | "truncate-start"
+  | "truncate-middle"
+  | "truncate-end";
 
 export interface TextProps extends TextStyleProps {
   wrap?: boolean | TextWrapMode;
@@ -30,14 +30,26 @@ export interface TextProps extends TextStyleProps {
   children?: any;
 }
 
-export type FlexDirection = 'row' | 'column' | 'row-reverse' | 'column-reverse';
+export type FlexDirection = "row" | "column" | "row-reverse" | "column-reverse";
 export type JustifyContent =
-  'flex-start' | 'flex-end' | 'center' | 'space-between' | 'space-around' | 'space-evenly';
-export type AlignItems = 'flex-start' | 'center' | 'flex-end' | 'stretch';
-export type AlignSelf = 'auto' | 'flex-start' | 'center' | 'flex-end' | 'stretch';
+  | "flex-start"
+  | "flex-end"
+  | "center"
+  | "space-between"
+  | "space-around"
+  | "space-evenly";
+export type AlignItems = "flex-start" | "center" | "flex-end" | "stretch";
+export type AlignSelf =
+  "auto" | "flex-start" | "center" | "flex-end" | "stretch";
 
 export type BorderStyleName =
-  'single' | 'double' | 'round' | 'bold' | 'singleDouble' | 'doubleSingle' | 'classic';
+  | "single"
+  | "double"
+  | "round"
+  | "bold"
+  | "singleDouble"
+  | "doubleSingle"
+  | "classic";
 
 export interface BorderGlyphs {
   topLeft: string;
@@ -116,10 +128,10 @@ export interface BoxProps {
 
   // Styling & Display
   backgroundColor?: ColorValue;
-  overflow?: 'visible' | 'hidden';
-  overflowX?: 'visible' | 'hidden';
-  overflowY?: 'visible' | 'hidden';
-  display?: 'flex' | 'none';
+  overflow?: "visible" | "hidden";
+  overflowX?: "visible" | "hidden";
+  overflowY?: "visible" | "hidden";
+  display?: "flex" | "none";
 
   children?: any;
 }

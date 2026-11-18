@@ -1,4 +1,9 @@
-import type { NewlineProps, StitchableElement, Block, RenderContext } from './types.js';
+import type {
+  NewlineProps,
+  StitchableElement,
+  Block,
+  RenderContext,
+} from "./types.js";
 
 export function renderNewlineElement(
   element: StitchableElement<NewlineProps>,
@@ -7,7 +12,7 @@ export function renderNewlineElement(
   const count = element.props?.count ?? 1;
   const lines: string[] = [];
   for (let i = 0; i < count; i++) {
-    lines.push('');
+    lines.push("");
   }
   return {
     lines,

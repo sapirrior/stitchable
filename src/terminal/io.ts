@@ -1,4 +1,4 @@
-import { StringDecoder } from 'node:string_decoder';
+import { StringDecoder } from "node:string_decoder";
 
 export interface TerminalIO {
   readonly columns: number;
@@ -26,17 +26,17 @@ function detectColorLevel(isTTY: boolean): 0 | 1 | 2 | 3 {
   if (process.env.NO_COLOR !== undefined) return 0;
   if (process.env.FORCE_COLOR !== undefined) {
     const force = process.env.FORCE_COLOR;
-    if (force === '0' || force === 'false') return 0;
-    if (force === '1') return 1;
-    if (force === '2') return 2;
-    if (force === '3' || force === 'true') return 3;
+    if (force === "0" || force === "false") return 0;
+    if (force === "1") return 1;
+    if (force === "2") return 2;
+    if (force === "3" || force === "true") return 3;
     return 1;
   }
   if (!isTTY) return 0;
   const colorTerm = process.env.COLORTERM?.toLowerCase();
-  if (colorTerm === 'truecolor' || colorTerm === '24bit') return 3;
-  const term = process.env.TERM?.toLowerCase() || '';
-  if (term.includes('256color')) return 2;
+  if (colorTerm === "truecolor" || colorTerm === "24bit") return 3;
+  const term = process.env.TERM?.toLowerCase() || "";
+  if (term.includes("256color")) return 2;
   return 1;
 }
 
@@ -62,14 +62,14 @@ export function nodeIO(opts?: {
       stdout.write(data);
     },
     onResize(cb: () => void): () => void {
-      stdout.on('resize', cb);
+      stdout.on("resize", cb);
       return () => {
-        stdout.off('resize', cb);
+        stdout.off("resize", cb);
       };
     },
     input: {
       setRaw(on: boolean): void {
-        if ('setRawMode' in stdin && typeof stdin.setRawMode === 'function') {
+        if ("setRawMode" in stdin && typeof stdin.setRawMode === "function") {
           try {
             stdin.setRawMode(on);
           } catch {}
@@ -82,23 +82,23 @@ export function nodeIO(opts?: {
         try {
           stdin.pause();
         } catch {}
-        if ('unref' in stdin && typeof (stdin as any).unref === 'function') {
+        if ("unref" in stdin && typeof (stdin as any).unref === "function") {
           try {
             (stdin as any).unref();
           } catch {}
         }
       },
       onData(cb: (chunk: string) => void): () => void {
-        const decoder = new StringDecoder('utf8');
+        const decoder = new StringDecoder("utf8");
         const handler = (chunk: Buffer | string) => {
-          const str = typeof chunk === 'string' ? chunk : decoder.write(chunk);
+          const str = typeof chunk === "string" ? chunk : decoder.write(chunk);
           if (str.length > 0) {
             cb(str);
           }
         };
-        stdin.on('data', handler);
+        stdin.on("data", handler);
         return () => {
-          stdin.off('data', handler);
+          stdin.off("data", handler);
         };
       },
     },
@@ -136,7 +136,7 @@ export function memoryIO(opts: {
     colorLevel,
     output,
     get written(): string {
-      return output.join('');
+      return output.join("");
     },
     write(data: string): void {
       output.push(data);

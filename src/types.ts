@@ -1,22 +1,36 @@
-import type { ColorLevel } from './terminal/color.js';
-import type Component from './engine/Component.js';
+import type { ColorLevel } from "./terminal/color.js";
+import type Component from "./engine/Component.js";
 
-export const ELEMENT_TYPE_SYMBOL: unique symbol = Symbol.for('stitchable.element');
-export const Fragment: unique symbol = Symbol.for('stitchable.fragment');
+export const ELEMENT_TYPE_SYMBOL: unique symbol =
+  Symbol.for("stitchable.element");
+export const Fragment: unique symbol = Symbol.for("stitchable.fragment");
 
 export type ElementKey = string | number;
 
 export type ElementChild =
-  ElementNode | string | number | boolean | null | undefined | readonly ElementChild[];
+  | ElementNode
+  | string
+  | number
+  | boolean
+  | null
+  | undefined
+  | readonly ElementChild[];
 
-export type IntrinsicType = 'box' | 'text';
+export type IntrinsicType = "box" | "text";
 
-export type FunctionComponent<P = any> = (props: P & { children?: ElementChild }) => ElementChild;
+export type FunctionComponent<P = any> = (
+  props: P & { children?: ElementChild },
+) => ElementChild;
 
-export type ClassComponentType<P = any> = new (props: P) => Component<P & Record<string, any>, any>;
+export type ClassComponentType<P = any> = new (
+  props: P,
+) => Component<P & Record<string, any>, any>;
 
 export type ElementType<P = any> =
-  IntrinsicType | FunctionComponent<P> | ClassComponentType<P> | typeof Fragment;
+  | IntrinsicType
+  | FunctionComponent<P>
+  | ClassComponentType<P>
+  | typeof Fragment;
 
 export type ComponentOutput = ElementChild;
 

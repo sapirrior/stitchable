@@ -1,5 +1,5 @@
-import { useApp } from './useApp.js';
-import type { CursorPosition } from '../types.js';
+import { useApp } from "./useApp.js";
+import type { CursorPosition } from "../types.js";
 
 export function useCursor(position: CursorPosition | null): void {
   const app = useApp();

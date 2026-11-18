@@ -5,24 +5,30 @@ import {
   type ElementKey,
   type ElementNode,
   type ElementType,
-} from '../types.js';
+} from "../types.js";
 
 export { ELEMENT_TYPE_SYMBOL, Fragment };
 
 export function isElement(value: unknown): value is ElementNode {
   return (
-    value !== null && typeof value === 'object' && (value as any).$$typeof === ELEMENT_TYPE_SYMBOL
+    value !== null &&
+    typeof value === "object" &&
+    (value as any).$$typeof === ELEMENT_TYPE_SYMBOL
   );
 }
 
 export function normalizeChildren(children: unknown): readonly ElementChild[] {
-  if (children === null || children === undefined || typeof children === 'boolean') {
+  if (
+    children === null ||
+    children === undefined ||
+    typeof children === "boolean"
+  ) {
     return [];
   }
   if (Array.isArray(children)) {
     const result: ElementChild[] = [];
     for (const child of children) {
-      if (child === null || child === undefined || typeof child === 'boolean') {
+      if (child === null || child === undefined || typeof child === "boolean") {
         continue;
       }
       if (Array.isArray(child)) {
@@ -41,7 +47,10 @@ export function jsx<P = any>(
   rawProps?: Record<string, unknown> | null,
   keyOverride?: ElementKey,
 ): ElementNode<P> {
-  const { key: propKey, ...restProps } = (rawProps || {}) as Record<string, unknown>;
+  const { key: propKey, ...restProps } = (rawProps || {}) as Record<
+    string,
+    unknown
+  >;
   const resolvedKey =
     keyOverride !== undefined
       ? keyOverride

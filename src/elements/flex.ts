@@ -1,5 +1,11 @@
-import type { FlexDirection, JustifyContent, AlignItems, AlignSelf, Block } from './types.js';
-import { visibleWidth } from '../text/width.js';
+import type {
+  FlexDirection,
+  JustifyContent,
+  AlignItems,
+  AlignSelf,
+  Block,
+} from "./types.js";
+import { visibleWidth } from "../text/width.js";
 
 export interface FlexItem {
   basis: number;
@@ -13,7 +19,11 @@ export interface FlexItem {
 /**
  * Distributes available integer space across items using the largest-remainder method.
  */
-export function distributeFlexSpace(items: FlexItem[], availableWidth: number, gap = 0): number[] {
+export function distributeFlexSpace(
+  items: FlexItem[],
+  availableWidth: number,
+  gap = 0,
+): number[] {
   const n = items.length;
   if (n === 0) return [];
   if (n === 1) {
@@ -33,7 +43,9 @@ export function distributeFlexSpace(items: FlexItem[], availableWidth: number, g
   if (freeSpace > 0) {
     const totalGrow = items.reduce((sum, it) => sum + it.flexGrow, 0);
     if (totalGrow > 0) {
-      const floatAllocations = items.map((it) => (it.flexGrow / totalGrow) * freeSpace);
+      const floatAllocations = items.map(
+        (it) => (it.flexGrow / totalGrow) * freeSpace,
+      );
       const integerAllocations = floatAllocations.map(Math.floor);
       let allocatedTotal = integerAllocations.reduce((sum, v) => sum + v, 0);
       let remainder = freeSpace - allocatedTotal;
@@ -54,7 +66,10 @@ export function distributeFlexSpace(items: FlexItem[], availableWidth: number, g
     }
   } else if (freeSpace < 0) {
     const deficit = -freeSpace;
-    const totalShrinkCapacity = items.reduce((sum, it) => sum + it.flexShrink * it.basis, 0);
+    const totalShrinkCapacity = items.reduce(
+      (sum, it) => sum + it.flexShrink * it.basis,
+      0,
+    );
 
     if (totalShrinkCapacity > 0) {
       const floatShrinks = items.map(
@@ -110,11 +125,11 @@ export function computeJustifyGaps(
   const freeSpace = Math.max(0, totalAvailable - totalContent - baseGapsTotal);
 
   if (freeSpace <= 0 || n === 1) {
-    if (justify === 'center') {
+    if (justify === "center") {
       const leading = Math.floor(freeSpace / 2);
       return { leadingSpace: leading, gaps: [] };
     }
-    if (justify === 'flex-end') {
+    if (justify === "flex-end") {
       return { leadingSpace: freeSpace, gaps: [] };
     }
     return { leadingSpace: 0, gaps: [] };
@@ -124,19 +139,19 @@ export function computeJustifyGaps(
   let leadingSpace = 0;
 
   switch (justify) {
-    case 'flex-start':
+    case "flex-start":
       leadingSpace = 0;
       break;
 
-    case 'flex-end':
+    case "flex-end":
       leadingSpace = freeSpace;
       break;
 
-    case 'center':
+    case "center":
       leadingSpace = Math.floor(freeSpace / 2);
       break;
 
-    case 'space-between': {
+    case "space-between": {
       if (n > 1) {
         const extraPerGap = Math.floor(freeSpace / (n - 1));
         const rem = freeSpace % (n - 1);
@@ -147,7 +162,7 @@ export function computeJustifyGaps(
       break;
     }
 
-    case 'space-around': {
+    case "space-around": {
       const slot = freeSpace / n;
       const halfSlot = Math.floor(slot / 2);
       leadingSpace = halfSlot;
@@ -158,7 +173,7 @@ export function computeJustifyGaps(
       break;
     }
 
-    case 'space-evenly': {
+    case "space-evenly": {
       const slot = Math.floor(freeSpace / (n + 1));
       const rem = freeSpace % (n + 1);
       leadingSpace = slot;
@@ -182,17 +197,17 @@ export function alignBlockInRow(
   align: AlignItems,
   alignSelf?: AlignSelf,
 ): Block {
-  const actualAlign = alignSelf && alignSelf !== 'auto' ? alignSelf : align;
+  const actualAlign = alignSelf && alignSelf !== "auto" ? alignSelf : align;
   const currentHeight = block.lines.length;
   const heightDiff = Math.max(0, targetHeight - currentHeight);
 
   let padTop = 0;
   let padBottom = 0;
 
-  if (actualAlign === 'center') {
+  if (actualAlign === "center") {
     padTop = Math.floor(heightDiff / 2);
     padBottom = heightDiff - padTop;
-  } else if (actualAlign === 'flex-end') {
+  } else if (actualAlign === "flex-end") {
     padTop = heightDiff;
     padBottom = 0;
   } else {
@@ -202,7 +217,7 @@ export function alignBlockInRow(
   }
 
   const paddedLines: string[] = [];
-  const emptyRow = ' '.repeat(targetWidth);
+  const emptyRow = " ".repeat(targetWidth);
 
   for (let i = 0; i < padTop; i++) {
     paddedLines.push(emptyRow);
@@ -211,7 +226,7 @@ export function alignBlockInRow(
   for (const line of block.lines) {
     const lineW = visibleWidth(line);
     const rightPad = Math.max(0, targetWidth - lineW);
-    paddedLines.push(line + ' '.repeat(rightPad));
+    paddedLines.push(line + " ".repeat(rightPad));
   }
 
   for (let i = 0; i < padBottom; i++) {

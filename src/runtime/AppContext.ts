@@ -1,8 +1,8 @@
-import { createContext, useContext } from '../reconciler/context.js';
-import type { TerminalEngine } from '../engine/TerminalEngine.js';
-import type { TerminalIO } from '../terminal/io.js';
-import type { InputDispatcher } from './InputDispatcher.js';
-import type { CursorPosition } from '../types.js';
+import { createContext, useContext } from "../reconciler/context.js";
+import type { TerminalEngine } from "../engine/TerminalEngine.js";
+import type { TerminalIO } from "../terminal/io.js";
+import type { InputDispatcher } from "./InputDispatcher.js";
+import type { CursorPosition } from "../types.js";
 
 export interface AppContextValue {
   readonly engine: TerminalEngine;

@@ -1,8 +1,8 @@
-import type { DocumentTree } from './DocumentTree.js';
-import { computeDocumentFrame, type DocumentFrame } from './FrameBuffer.js';
-import { ScrollModel } from './scroll.js';
-import { ScreenBuffer } from '../layout/ScreenBuffer.js';
-import { nodeIO, type TerminalIO } from '../terminal/io.js';
+import type { DocumentTree } from "./DocumentTree.js";
+import { computeDocumentFrame, type DocumentFrame } from "./FrameBuffer.js";
+import { ScrollModel } from "./scroll.js";
+import { ScreenBuffer } from "../layout/ScreenBuffer.js";
+import { nodeIO, type TerminalIO } from "../terminal/io.js";
 import {
   START_SYNC_OUTPUT,
   END_SYNC_OUTPUT,
@@ -12,7 +12,7 @@ import {
   HIDE_CURSOR,
   RESET_SGR,
   cursorTo,
-} from '../terminal/sequences.js';
+} from "../terminal/sequences.js";
 
 export default class StateRenderer {
   private syncActive = false;
@@ -23,13 +23,13 @@ export default class StateRenderer {
   private defaultIO?: TerminalIO;
 
   private beginSync(): string {
-    if (this.syncActive) return '';
+    if (this.syncActive) return "";
     this.syncActive = true;
     return START_SYNC_OUTPUT;
   }
 
   private endSync(): string {
-    if (!this.syncActive) return '';
+    if (!this.syncActive) return "";
     this.syncActive = false;
     return END_SYNC_OUTPUT;
   }
@@ -38,7 +38,11 @@ export default class StateRenderer {
     width: number,
     height: number,
   ): { front: ScreenBuffer | null; back: ScreenBuffer } {
-    if (width !== this.lastWidth || height !== this.lastHeight || !this.backBuffer) {
+    if (
+      width !== this.lastWidth ||
+      height !== this.lastHeight ||
+      !this.backBuffer
+    ) {
       this.backBuffer = new ScreenBuffer(width, height);
       this.lastWidth = width;
       this.lastHeight = height;
@@ -54,7 +58,11 @@ export default class StateRenderer {
     forceFull = false,
     lineWidthCache: Map<string, number> = new Map(),
     io?: { columns: number; rows: number; write: (data: string) => void },
-    onOverflow?: (info: { width: number; maxCols: number; row: string }) => void,
+    onOverflow?: (info: {
+      width: number;
+      maxCols: number;
+      row: string;
+    }) => void,
   ): DocumentFrame {
     if (!io && !this.defaultIO) {
       this.defaultIO = nodeIO();
@@ -77,7 +85,7 @@ export default class StateRenderer {
     const nextLines = nextFrame.lines;
 
     for (let y = 0; y < nextLines.length && y < termHeight; y++) {
-      const line = nextLines[y] ?? '';
+      const line = nextLines[y] ?? "";
       back.blitText(0, y, termWidth, line);
     }
 
@@ -88,16 +96,20 @@ export default class StateRenderer {
       output += CLEAR_SCREEN;
       for (let i = 0; i < termHeight; i++) {
         const line = back.getRow(i);
-        const resetSuffix = line.includes('\x1b') && !line.endsWith(RESET_SGR) ? RESET_SGR : '';
+        const resetSuffix =
+          line.includes("\x1b") && !line.endsWith(RESET_SGR) ? RESET_SGR : "";
         output +=
-          i === termHeight - 1 ? '\r' + line + resetSuffix : '\r' + line + resetSuffix + '\n';
+          i === termHeight - 1
+            ? "\r" + line + resetSuffix
+            : "\r" + line + resetSuffix + "\n";
       }
     } else {
       // Delta diff
       const diffs = back.diff(front);
       for (const { row, text } of diffs) {
         if (text.length > 0) {
-          const resetSuffix = text.includes('\x1b') && !text.endsWith(RESET_SGR) ? RESET_SGR : '';
+          const resetSuffix =
+            text.includes("\x1b") && !text.endsWith(RESET_SGR) ? RESET_SGR : "";
           output += `${cursorTo(row + 1, 1)}${CLEAR_LINE}${text}${resetSuffix}`;
         } else {
           output += `${cursorTo(row + 1, 1)}${CLEAR_LINE}${RESET_SGR}`;

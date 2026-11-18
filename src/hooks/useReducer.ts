@@ -2,7 +2,7 @@ import {
   getWorkInProgressHook,
   getCurrentRenderingInstance,
   type Reducer,
-} from '../reconciler/hookState.js';
+} from "../reconciler/hookState.js";
 
 export type { Reducer };
 
@@ -11,18 +11,22 @@ export function useReducer<S, A, I>(
   initialArg: I,
   init: (arg: I) => S,
 ): [S, (action: A) => void];
-export function useReducer<S, A>(reducer: Reducer<S, A>, initialState: S): [S, (action: A) => void];
+export function useReducer<S, A>(
+  reducer: Reducer<S, A>,
+  initialState: S,
+): [S, (action: A) => void];
 export function useReducer<S, A, I>(
   reducer: Reducer<S, A>,
   initialArg: I | S,
   init?: (arg: I) => S,
 ): [S, (action: A) => void] {
-  const { slot, isNew, instance } = getWorkInProgressHook('reducer');
+  const { slot, isNew, instance } = getWorkInProgressHook("reducer");
 
   if (isNew) {
-    const initialState = init !== undefined ? init(initialArg as I) : (initialArg as S);
+    const initialState =
+      init !== undefined ? init(initialArg as I) : (initialArg as S);
     const newSlot = {
-      kind: 'reducer' as const,
+      kind: "reducer" as const,
       state: initialState,
       reducer,
     };
@@ -45,7 +49,7 @@ export function useReducer<S, A, I>(
     return [initialState, dispatch];
   }
 
-  const redSlot = slot as { kind: 'reducer'; state: S; reducer: Reducer<S, A> };
+  const redSlot = slot as { kind: "reducer"; state: S; reducer: Reducer<S, A> };
   redSlot.reducer = reducer;
 
   const dispatch = (action: A) => {

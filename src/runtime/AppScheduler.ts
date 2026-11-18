@@ -1,5 +1,5 @@
-import { getPendingEffects, type EffectRecord } from '../reconciler/hooks.js';
-import type TerminalEngine from '../engine/TerminalEngine.js';
+import { getPendingEffects, type EffectRecord } from "../reconciler/hooks.js";
+import type TerminalEngine from "../engine/TerminalEngine.js";
 
 export class AppScheduler {
   private engine: TerminalEngine;
@@ -54,13 +54,13 @@ export class AppScheduler {
   private runEffectList(effects: EffectRecord[]): void {
     for (const eff of effects) {
       const slot = eff.instance.hookSlots[eff.hookIndex];
-      if (slot && slot.kind === 'effect') {
+      if (slot && slot.kind === "effect") {
         // Run previous cleanup if any
-        if (typeof slot.destroy === 'function') {
+        if (typeof slot.destroy === "function") {
           try {
             slot.destroy();
           } catch (e) {
-            console.error('Error during effect cleanup:', e);
+            console.error("Error during effect cleanup:", e);
           }
           slot.destroy = undefined;
         }
@@ -68,11 +68,11 @@ export class AppScheduler {
         // Run new creator
         try {
           const destroy = eff.create();
-          if (typeof destroy === 'function') {
+          if (typeof destroy === "function") {
             slot.destroy = destroy;
           }
         } catch (e) {
-          console.error('Error during effect execution:', e);
+          console.error("Error during effect execution:", e);
         }
       }
     }

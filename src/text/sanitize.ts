@@ -1,17 +1,17 @@
-import { expandTabs, segmentGraphemes } from './width.js';
+import { expandTabs, segmentGraphemes } from "./width.js";
 
 /**
  * Sanitizes an untrusted string to ensure only printable graphemes and valid SGR escape sequences reach the terminal.
  * Drops raw OSC, non-SGR CSI, DEC private modes, and unsafe C0/C1 control characters.
  */
 export function sanitize(text: string): string {
-  if (!text) return '';
+  if (!text) return "";
 
   const expanded = expandTabs(text);
   const sgrOrOtherRegex =
     /(\x1b\[[0-9;]*m)|(\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b\[[0-9;?]*[a-zA-Z]|\x9b[0-9;]*[a-zA-Z]|\x1b[=>NOWc])/g;
 
-  let result = '';
+  let result = "";
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 

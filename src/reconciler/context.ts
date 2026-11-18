@@ -1,8 +1,10 @@
-import type { ElementChild, FunctionComponent } from '../types.js';
-import { jsx } from './element.js';
-import type { ComponentInstance } from './instance.js';
+import type { ElementChild, FunctionComponent } from "../types.js";
+import { jsx } from "./element.js";
+import type { ComponentInstance } from "./instance.js";
 
-export const CONTEXT_PROVIDER_TYPE: unique symbol = Symbol.for('stitchable.context_provider');
+export const CONTEXT_PROVIDER_TYPE: unique symbol = Symbol.for(
+  "stitchable.context_provider",
+);
 
 export interface Context<T> {
   readonly _id: symbol;
@@ -35,9 +37,11 @@ export function popContextValue(contextId: symbol, prevValue: any): void {
 }
 
 export function createContext<T>(defaultValue: T): Context<T> {
-  const contextId = Symbol('stitchable.context');
+  const contextId = Symbol("stitchable.context");
 
-  const Provider: FunctionComponent<{ value: T; children?: ElementChild }> = (props) => {
+  const Provider: FunctionComponent<{ value: T; children?: ElementChild }> = (
+    props,
+  ) => {
     return props.children as ElementChild;
   };
 

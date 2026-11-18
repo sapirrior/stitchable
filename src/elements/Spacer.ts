@@ -1,4 +1,9 @@
-import type { SpacerProps, StitchableElement, Block, RenderContext } from './types.js';
+import type {
+  SpacerProps,
+  StitchableElement,
+  Block,
+  RenderContext,
+} from "./types.js";
 
 export function renderSpacerElement(
   _element: StitchableElement<SpacerProps>,
@@ -6,12 +11,14 @@ export function renderSpacerElement(
 ): Block {
   const width = Math.max(0, context.width);
   return {
-    lines: [' '.repeat(width)],
+    lines: [" ".repeat(width)],
     width,
   };
 }
 
-export function Spacer(props?: SpacerProps): StitchableElement<SpacerProps & { flexGrow: number }> {
+export function Spacer(
+  props?: SpacerProps,
+): StitchableElement<SpacerProps & { flexGrow: number }> {
   const el: StitchableElement<SpacerProps & { flexGrow: number }> = {
     type: Spacer,
     props: { ...props, flexGrow: 1 },

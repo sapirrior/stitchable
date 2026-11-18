@@ -1,8 +1,8 @@
-import { useEffect } from './useEffect.js';
-import { useState } from './useState.js';
-import { useRef } from './useRef.js';
-import { useApp } from './useApp.js';
-import { getCurrentRenderingInstance } from '../reconciler/hookState.js';
+import { useEffect } from "./useEffect.js";
+import { useState } from "./useState.js";
+import { useRef } from "./useRef.js";
+import { useApp } from "./useApp.js";
+import { getCurrentRenderingInstance } from "../reconciler/hookState.js";
 
 export function useFocus(options: { id?: string; autoFocus?: boolean } = {}): {
   readonly id: string;
@@ -13,7 +13,8 @@ export function useFocus(options: { id?: string; autoFocus?: boolean } = {}): {
   const app = useApp();
   const idRef = useRef<string | null>(null);
   if (!idRef.current) {
-    idRef.current = options.id || `focus-${Math.random().toString(36).slice(2, 9)}`;
+    idRef.current =
+      options.id || `focus-${Math.random().toString(36).slice(2, 9)}`;
   }
   const id = idRef.current;
 

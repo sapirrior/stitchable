@@ -1,22 +1,33 @@
-import type { BoxProps, Block, RenderContext, StitchableElement, BorderGlyphs } from './types.js';
-import { visibleWidth } from '../text/width.js';
-import { truncate } from '../text/truncate.js';
-import { resolveBorderStyle } from './border.js';
-import { colorToSgr, styleText } from '../terminal/color.js';
-import { RESET_SGR } from '../terminal/sequences.js';
-import { distributeFlexSpace, computeJustifyGaps, alignBlockInRow, type FlexItem } from './flex.js';
-import { renderTextElement, Text } from './Text.js';
-import { renderNewlineElement, Newline } from './Newline.js';
-import { renderSpacerElement, Spacer } from './Spacer.js';
-import { renderTransformElement, Transform } from './Transform.js';
+import type {
+  BoxProps,
+  Block,
+  RenderContext,
+  StitchableElement,
+  BorderGlyphs,
+} from "./types.js";
+import { visibleWidth } from "../text/width.js";
+import { truncate } from "../text/truncate.js";
+import { resolveBorderStyle } from "./border.js";
+import { colorToSgr, styleText } from "../terminal/color.js";
+import { RESET_SGR } from "../terminal/sequences.js";
+import {
+  distributeFlexSpace,
+  computeJustifyGaps,
+  alignBlockInRow,
+  type FlexItem,
+} from "./flex.js";
+import { renderTextElement, Text } from "./Text.js";
+import { renderNewlineElement, Newline } from "./Newline.js";
+import { renderSpacerElement, Spacer } from "./Spacer.js";
+import { renderTransformElement, Transform } from "./Transform.js";
 
 export function parseDimension(
   dim: number | string | undefined,
   parentSize: number,
 ): number | undefined {
   if (dim === undefined) return undefined;
-  if (typeof dim === 'number') return Math.max(0, dim);
-  if (typeof dim === 'string' && dim.endsWith('%')) {
+  if (typeof dim === "number") return Math.max(0, dim);
+  if (typeof dim === "string" && dim.endsWith("%")) {
     const pct = parseFloat(dim) / 100;
     if (!isNaN(pct)) {
       return Math.max(0, Math.floor(parentSize * pct));
@@ -26,18 +37,18 @@ export function parseDimension(
   return isNaN(parsed) ? undefined : Math.max(0, parsed);
 }
 
-import Component from '../engine/Component.js';
-import { Fragment } from './types.js';
+import Component from "../engine/Component.js";
+import { Fragment } from "./types.js";
 
 export function renderAnyElement(node: any, context: RenderContext): Block {
-  if (node === null || node === undefined || typeof node === 'boolean') {
+  if (node === null || node === undefined || typeof node === "boolean") {
     return { lines: [], width: 0 };
   }
 
-  if (typeof node === 'string' || typeof node === 'number') {
+  if (typeof node === "string" || typeof node === "number") {
     return renderTextElement(
       {
-        type: 'Text',
+        type: "Text",
         props: { children: [String(node)] },
         children: [String(node)],
       },
@@ -58,43 +69,50 @@ export function renderAnyElement(node: any, context: RenderContext): Block {
     return { lines, width: maxWidth };
   }
 
-  if (typeof node === 'object') {
+  if (typeof node === "object") {
     // Handle Fragment
-    if (node.type === Fragment || node.type === Symbol.for('stitchable.fragment')) {
+    if (
+      node.type === Fragment ||
+      node.type === Symbol.for("stitchable.fragment")
+    ) {
       return renderAnyElement(node.children ?? node.props?.children, context);
     }
 
     // Direct object with render(width) method
-    if (typeof node.render === 'function') {
+    if (typeof node.render === "function") {
       const lines = node.render(context.width);
       return {
         lines,
-        width: lines.reduce((max: number, l: string) => Math.max(max, visibleWidth(l)), 0),
+        width: lines.reduce(
+          (max: number, l: string) => Math.max(max, visibleWidth(l)),
+          0,
+        ),
       };
     }
 
-    if (typeof node.type === 'function') {
+    if (typeof node.type === "function") {
       const typeName = node.type.name;
-      if (node.type === Text || typeName === 'Text') {
+      if (node.type === Text || typeName === "Text") {
         return renderTextElement(node, context);
       }
-      if (node.type === Newline || typeName === 'Newline') {
+      if (node.type === Newline || typeName === "Newline") {
         return renderNewlineElement(node, context);
       }
-      if (node.type === Spacer || typeName === 'Spacer') {
+      if (node.type === Spacer || typeName === "Spacer") {
         return renderSpacerElement(node, context);
       }
-      if (node.type === Transform || typeName === 'Transform') {
+      if (node.type === Transform || typeName === "Transform") {
         return renderTransformElement(node, context, renderAnyElement);
       }
-      if (node.type === Box || typeName === 'Box') {
+      if (node.type === Box || typeName === "Box") {
         return renderBoxElement(node, context);
       }
 
       // Check if it's a class component
       if (
         node.type.prototype &&
-        ('render' in node.type.prototype || node.type.prototype instanceof Component)
+        ("render" in node.type.prototype ||
+          node.type.prototype instanceof Component)
       ) {
         const instance = new node.type(node.props || {});
         const rendered = instance.render(context.width);
@@ -108,12 +126,12 @@ export function renderAnyElement(node: any, context: RenderContext): Block {
       return renderAnyElement(rendered, context);
     }
 
-    if (typeof node.type === 'string') {
+    if (typeof node.type === "string") {
       const typeLower = node.type.toLowerCase();
-      if (typeLower === 'text') {
+      if (typeLower === "text") {
         return renderTextElement(node, context);
       }
-      if (typeLower === 'box') {
+      if (typeLower === "box") {
         return renderBoxElement(node, context);
       }
       throw new Error(`Unknown intrinsic element: <${node.type}>`);
@@ -127,20 +145,27 @@ export function renderAnyElement(node: any, context: RenderContext): Block {
 
 const blockCache = new WeakMap<object, Map<string, Block>>();
 
-export function getCachedBlock(element: object, context: RenderContext): Block | undefined {
+export function getCachedBlock(
+  element: object,
+  context: RenderContext,
+): Block | undefined {
   const map = blockCache.get(element);
   if (!map) return undefined;
-  const key = `${context.width}:${context.height ?? 0}:${context.colorLevel}:${context.inheritedBg ?? ''}:${context.isNaturalMeasuring ? 1 : 0}`;
+  const key = `${context.width}:${context.height ?? 0}:${context.colorLevel}:${context.inheritedBg ?? ""}:${context.isNaturalMeasuring ? 1 : 0}`;
   return map.get(key);
 }
 
-export function setCachedBlock(element: object, context: RenderContext, block: Block): void {
+export function setCachedBlock(
+  element: object,
+  context: RenderContext,
+  block: Block,
+): void {
   let map = blockCache.get(element);
   if (!map) {
     map = new Map<string, Block>();
     blockCache.set(element, map);
   }
-  const key = `${context.width}:${context.height ?? 0}:${context.colorLevel}:${context.inheritedBg ?? ''}:${context.isNaturalMeasuring ? 1 : 0}`;
+  const key = `${context.width}:${context.height ?? 0}:${context.colorLevel}:${context.inheritedBg ?? ""}:${context.isNaturalMeasuring ? 1 : 0}`;
   map.set(key, block);
 }
 
@@ -148,12 +173,12 @@ export function renderBoxElement(
   element: StitchableElement<BoxProps>,
   context: RenderContext,
 ): Block {
-  if (element && typeof element === 'object') {
+  if (element && typeof element === "object") {
     const cached = getCachedBlock(element, context);
     if (cached) return cached;
   }
   const props = element.props || {};
-  if (props.display === 'none') {
+  if (props.display === "none") {
     return { lines: [], width: 0 };
   }
 
@@ -167,11 +192,15 @@ export function renderBoxElement(
   const marginBottom = props.marginBottom ?? props.marginY ?? props.margin ?? 0;
 
   const paddingLeft = props.paddingLeft ?? props.paddingX ?? props.padding ?? 0;
-  const paddingRight = props.paddingRight ?? props.paddingX ?? props.padding ?? 0;
+  const paddingRight =
+    props.paddingRight ?? props.paddingX ?? props.padding ?? 0;
   const paddingTop = props.paddingTop ?? props.paddingY ?? props.padding ?? 0;
-  const paddingBottom = props.paddingBottom ?? props.paddingY ?? props.padding ?? 0;
+  const paddingBottom =
+    props.paddingBottom ?? props.paddingY ?? props.padding ?? 0;
 
-  const borderGlyphs: BorderGlyphs | null = resolveBorderStyle(props.borderStyle);
+  const borderGlyphs: BorderGlyphs | null = resolveBorderStyle(
+    props.borderStyle,
+  );
   const hasBorderTop = borderGlyphs ? (props.borderTop ?? true) : false;
   const hasBorderBottom = borderGlyphs ? (props.borderBottom ?? true) : false;
   const hasBorderLeft = borderGlyphs ? (props.borderLeft ?? true) : false;
@@ -180,20 +209,26 @@ export function renderBoxElement(
   const borderX = (hasBorderLeft ? 1 : 0) + (hasBorderRight ? 1 : 0);
   const borderY = (hasBorderTop ? 1 : 0) + (hasBorderBottom ? 1 : 0);
 
-  const totalHorizontalOverhead = marginLeft + marginRight + paddingLeft + paddingRight + borderX;
-  const totalVerticalOverhead = marginTop + marginBottom + paddingTop + paddingBottom + borderY;
+  const totalHorizontalOverhead =
+    marginLeft + marginRight + paddingLeft + paddingRight + borderX;
+  const totalVerticalOverhead =
+    marginTop + marginBottom + paddingTop + paddingBottom + borderY;
 
   // 2. Resolve target dimensions
   let explicitWidth = parseDimension(props.width, parentWidth);
   if (explicitWidth !== undefined) {
-    if (props.minWidth !== undefined) explicitWidth = Math.max(explicitWidth, props.minWidth);
-    if (props.maxWidth !== undefined) explicitWidth = Math.min(explicitWidth, props.maxWidth);
+    if (props.minWidth !== undefined)
+      explicitWidth = Math.max(explicitWidth, props.minWidth);
+    if (props.maxWidth !== undefined)
+      explicitWidth = Math.min(explicitWidth, props.maxWidth);
   }
 
   let explicitHeight = parseDimension(props.height, parentHeight);
   if (explicitHeight !== undefined) {
-    if (props.minHeight !== undefined) explicitHeight = Math.max(explicitHeight, props.minHeight);
-    if (props.maxHeight !== undefined) explicitHeight = Math.min(explicitHeight, props.maxHeight);
+    if (props.minHeight !== undefined)
+      explicitHeight = Math.max(explicitHeight, props.minHeight);
+    if (props.maxHeight !== undefined)
+      explicitHeight = Math.min(explicitHeight, props.maxHeight);
   }
 
   const availableInnerWidth = Math.max(
@@ -216,18 +251,20 @@ export function renderBoxElement(
   const extractFlatChildren = (nodes: any[]): any[] => {
     const list: any[] = [];
     for (const c of nodes) {
-      if (c === null || c === undefined || typeof c === 'boolean') {
+      if (c === null || c === undefined || typeof c === "boolean") {
         continue;
       }
       if (Array.isArray(c)) {
         list.push(...extractFlatChildren(c));
       } else if (
-        typeof c === 'object' &&
-        (c.type === Fragment || c.type === Symbol.for('stitchable.fragment'))
+        typeof c === "object" &&
+        (c.type === Fragment || c.type === Symbol.for("stitchable.fragment"))
       ) {
         const fragChildren = c.props?.children ?? c.children ?? [];
         list.push(
-          ...extractFlatChildren(Array.isArray(fragChildren) ? fragChildren : [fragChildren]),
+          ...extractFlatChildren(
+            Array.isArray(fragChildren) ? fragChildren : [fragChildren],
+          ),
         );
       } else {
         list.push(c);
@@ -242,14 +279,16 @@ export function renderBoxElement(
   }
   const childrenList = extractFlatChildren(rawChildren);
 
-  const direction = props.flexDirection ?? 'row';
-  const isRow = direction === 'row' || direction === 'row-reverse';
-  const isReverse = direction === 'row-reverse' || direction === 'column-reverse';
+  const direction = props.flexDirection ?? "row";
+  const isRow = direction === "row" || direction === "row-reverse";
+  const isReverse =
+    direction === "row-reverse" || direction === "column-reverse";
   const itemsList = isReverse ? [...childrenList].reverse() : childrenList;
 
-  const gap = props.gap ?? (isRow ? (props.columnGap ?? 0) : (props.rowGap ?? 0));
-  const justifyContent = props.justifyContent ?? 'flex-start';
-  const alignItems = props.alignItems ?? 'stretch';
+  const gap =
+    props.gap ?? (isRow ? (props.columnGap ?? 0) : (props.rowGap ?? 0));
+  const justifyContent = props.justifyContent ?? "flex-start";
+  const alignItems = props.alignItems ?? "stretch";
 
   let innerLines: string[] = [];
   let contentWidth = 0;
@@ -273,14 +312,14 @@ export function renderBoxElement(
         const lineW = visibleWidth(line);
         let alignedLine = line;
 
-        if (alignItems === 'center') {
+        if (alignItems === "center") {
           const totalPad = Math.max(0, availableInnerWidth - lineW);
           const leftPad = Math.floor(totalPad / 2);
           const rightPad = totalPad - leftPad;
-          alignedLine = ' '.repeat(leftPad) + line + ' '.repeat(rightPad);
-        } else if (alignItems === 'flex-end') {
+          alignedLine = " ".repeat(leftPad) + line + " ".repeat(rightPad);
+        } else if (alignItems === "flex-end") {
           const leftPad = Math.max(0, availableInnerWidth - lineW);
-          alignedLine = ' '.repeat(leftPad) + line;
+          alignedLine = " ".repeat(leftPad) + line;
         }
 
         innerLines.push(alignedLine);
@@ -288,7 +327,7 @@ export function renderBoxElement(
       }
       if (i < childBlocks.length - 1 && rowGap > 0) {
         for (let g = 0; g < rowGap; g++) {
-          innerLines.push('');
+          innerLines.push("");
         }
       }
     }
@@ -298,22 +337,23 @@ export function renderBoxElement(
 
     for (const child of itemsList) {
       const isSpacer =
-        typeof child === 'object' && (child?.type?.name === 'Spacer' || child?.type === Spacer);
+        typeof child === "object" &&
+        (child?.type?.name === "Spacer" || child?.type === Spacer);
       const flexGrow = isSpacer
         ? 1
-        : typeof child === 'object' && child?.props?.flexGrow
+        : typeof child === "object" && child?.props?.flexGrow
           ? child.props.flexGrow
           : 0;
       const flexShrink =
-        typeof child === 'object' && child?.props?.flexShrink !== undefined
+        typeof child === "object" && child?.props?.flexShrink !== undefined
           ? child.props.flexShrink
           : 1;
       const childWidthProp =
-        typeof child === 'object' && child?.props?.width !== undefined
+        typeof child === "object" && child?.props?.width !== undefined
           ? parseDimension(child.props.width, availableInnerWidth)
           : undefined;
       const flexBasisProp =
-        typeof child === 'object' && child?.props?.flexBasis !== undefined
+        typeof child === "object" && child?.props?.flexBasis !== undefined
           ? parseDimension(child.props.flexBasis, availableInnerWidth)
           : undefined;
 
@@ -337,11 +377,16 @@ export function renderBoxElement(
         basis: naturalWidth,
         flexGrow,
         flexShrink,
-        alignSelf: typeof child === 'object' ? child?.props?.alignSelf : undefined,
+        alignSelf:
+          typeof child === "object" ? child?.props?.alignSelf : undefined,
       });
     }
 
-    const targetWidths = distributeFlexSpace(childFlexItems, availableInnerWidth, gap);
+    const targetWidths = distributeFlexSpace(
+      childFlexItems,
+      availableInnerWidth,
+      gap,
+    );
 
     // Render children with allocated widths
     const renderedBlocks: Block[] = [];
@@ -376,13 +421,14 @@ export function renderBoxElement(
     );
 
     for (let row = 0; row < tallest; row++) {
-      let rowText = ' '.repeat(leadingSpace);
+      let rowText = " ".repeat(leadingSpace);
       for (let i = 0; i < alignedBlocks.length; i++) {
         const block = alignedBlocks[i]!;
-        rowText += block.lines[row] ?? ' '.repeat(targetWidths[i] ?? block.width);
+        rowText +=
+          block.lines[row] ?? " ".repeat(targetWidths[i] ?? block.width);
         if (i < alignedBlocks.length - 1) {
           const currentGap = gaps[i] ?? gap;
-          rowText += ' '.repeat(currentGap);
+          rowText += " ".repeat(currentGap);
         }
       }
       innerLines.push(rowText);
@@ -399,24 +445,27 @@ export function renderBoxElement(
         : contentWidth + paddingLeft + paddingRight;
 
   const paddedLines: string[] = [];
-  const emptyPaddedRow = ' '.repeat(innerWidth);
+  const emptyPaddedRow = " ".repeat(innerWidth);
 
   for (let i = 0; i < paddingTop; i++) {
     paddedLines.push(emptyPaddedRow);
   }
 
-  const maxLineContentWidth = Math.max(0, innerWidth - paddingLeft - paddingRight);
+  const maxLineContentWidth = Math.max(
+    0,
+    innerWidth - paddingLeft - paddingRight,
+  );
   const isOverflowXHidden =
-    props.overflow === 'hidden' || props.overflowX === 'hidden';
+    props.overflow === "hidden" || props.overflowX === "hidden";
 
   for (const rawLine of innerLines) {
     const line =
       isOverflowXHidden && visibleWidth(rawLine) > maxLineContentWidth
-        ? truncate(rawLine, maxLineContentWidth, { ellipsis: '' })
+        ? truncate(rawLine, maxLineContentWidth, { ellipsis: "" })
         : rawLine;
     const lineW = visibleWidth(line);
-    const leftPad = ' '.repeat(paddingLeft);
-    const rightPad = ' '.repeat(Math.max(0, innerWidth - paddingLeft - lineW));
+    const leftPad = " ".repeat(paddingLeft);
+    const rightPad = " ".repeat(Math.max(0, innerWidth - paddingLeft - lineW));
     paddedLines.push(leftPad + line + rightPad);
   }
 
@@ -426,11 +475,14 @@ export function renderBoxElement(
 
   // 5. Apply Height & Overflow Clipping
   if (explicitHeight !== undefined) {
-    const targetPaddedHeight = Math.max(0, explicitHeight - (marginTop + marginBottom + borderY));
+    const targetPaddedHeight = Math.max(
+      0,
+      explicitHeight - (marginTop + marginBottom + borderY),
+    );
     while (paddedLines.length < targetPaddedHeight) {
       paddedLines.push(emptyPaddedRow);
     }
-    if (props.overflow === 'hidden' || props.overflowY === 'hidden') {
+    if (props.overflow === "hidden" || props.overflowY === "hidden") {
       paddedLines.splice(targetPaddedHeight);
     }
   }
@@ -474,7 +526,7 @@ export function renderBoxElement(
             topBg ?? props.borderLeftBackgroundColor,
             topDim ?? props.borderLeftDimColor,
           )
-        : '';
+        : "";
       const tr = hasBorderRight
         ? colorizeBorder(
             borderGlyphs.topRight,
@@ -482,7 +534,7 @@ export function renderBoxElement(
             topBg ?? props.borderRightBackgroundColor,
             topDim ?? props.borderRightDimColor,
           )
-        : '';
+        : "";
       const horiz = colorizeBorder(
         borderGlyphs.horizontal.repeat(innerWidth),
         topFg,
@@ -500,7 +552,7 @@ export function renderBoxElement(
             props.borderLeftBackgroundColor,
             props.borderLeftDimColor,
           )
-        : '';
+        : "";
       const right = hasBorderRight
         ? colorizeBorder(
             borderGlyphs.vertical,
@@ -508,7 +560,7 @@ export function renderBoxElement(
             props.borderRightBackgroundColor,
             props.borderRightDimColor,
           )
-        : '';
+        : "";
       finalBoxLines.push(`${left}${rowLine}${right}`);
     }
 
@@ -524,7 +576,7 @@ export function renderBoxElement(
             botBg ?? props.borderLeftBackgroundColor,
             botDim ?? props.borderLeftDimColor,
           )
-        : '';
+        : "";
       const br = hasBorderRight
         ? colorizeBorder(
             borderGlyphs.bottomRight,
@@ -532,7 +584,7 @@ export function renderBoxElement(
             botBg ?? props.borderRightBackgroundColor,
             botDim ?? props.borderRightDimColor,
           )
-        : '';
+        : "";
       const horiz = colorizeBorder(
         borderGlyphs.horizontal.repeat(innerWidth),
         botFg,
@@ -553,7 +605,10 @@ export function renderBoxElement(
     if (bgSgr) {
       for (let i = 0; i < finalBoxLines.length; i++) {
         const line = finalBoxLines[i]!;
-        const lineWithRestoredBg = line.replace(/\x1b\[0?m/g, `${RESET_SGR}${bgSgr}`);
+        const lineWithRestoredBg = line.replace(
+          /\x1b\[0?m/g,
+          `${RESET_SGR}${bgSgr}`,
+        );
         finalBoxLines[i] = `${bgSgr}${lineWithRestoredBg}${RESET_SGR}`;
       }
     }
@@ -561,15 +616,15 @@ export function renderBoxElement(
 
   // 8. Margins
   const resultWithMargin: string[] = [];
-  const emptyMarginRow = ' '.repeat(boxWidth + marginLeft + marginRight);
+  const emptyMarginRow = " ".repeat(boxWidth + marginLeft + marginRight);
 
   for (let i = 0; i < marginTop; i++) {
     resultWithMargin.push(emptyMarginRow);
   }
 
   for (const line of finalBoxLines) {
-    const leftM = ' '.repeat(marginLeft);
-    const rightM = ' '.repeat(marginRight);
+    const leftM = " ".repeat(marginLeft);
+    const rightM = " ".repeat(marginRight);
     resultWithMargin.push(`${leftM}${line}${rightM}`);
   }
 
@@ -584,7 +639,7 @@ export function renderBoxElement(
     width: finalTotalWidth,
   };
 
-  if (element && typeof element === 'object') {
+  if (element && typeof element === "object") {
     setCachedBlock(element, context, blockResult);
   }
 
@@ -599,10 +654,10 @@ export function Box(
   let children: any[] = [];
 
   if (
-    typeof propsOrChildren === 'object' &&
+    typeof propsOrChildren === "object" &&
     propsOrChildren !== null &&
     !Array.isArray(propsOrChildren) &&
-    !('type' in propsOrChildren)
+    !("type" in propsOrChildren)
   ) {
     props = { ...propsOrChildren };
     children =

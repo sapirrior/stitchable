@@ -1,26 +1,26 @@
-import { RESET_SGR } from './sequences.js';
+import { RESET_SGR } from "./sequences.js";
 
 export type ColorLevel = 0 | 1 | 2 | 3;
 
 export type StandardColorName =
-  | 'black'
-  | 'red'
-  | 'green'
-  | 'yellow'
-  | 'blue'
-  | 'magenta'
-  | 'cyan'
-  | 'white'
-  | 'gray'
-  | 'grey'
-  | 'blackBright'
-  | 'redBright'
-  | 'greenBright'
-  | 'yellowBright'
-  | 'blueBright'
-  | 'magentaBright'
-  | 'cyanBright'
-  | 'whiteBright';
+  | "black"
+  | "red"
+  | "green"
+  | "yellow"
+  | "blue"
+  | "magenta"
+  | "cyan"
+  | "white"
+  | "gray"
+  | "grey"
+  | "blackBright"
+  | "redBright"
+  | "greenBright"
+  | "yellowBright"
+  | "blueBright"
+  | "magentaBright"
+  | "cyanBright"
+  | "whiteBright";
 
 export type ColorValue =
   | StandardColorName
@@ -76,7 +76,7 @@ const BASIC_16_BG: Record<string, number> = {
  * Parses hex (#rgb or #rrggbb) to RGB tuple [r, g, b]
  */
 function parseHex(hex: string): [number, number, number] | null {
-  const clean = hex.startsWith('#') ? hex.slice(1) : hex;
+  const clean = hex.startsWith("#") ? hex.slice(1) : hex;
   if (clean.length === 3) {
     const r = parseInt(clean[0]! + clean[0]!, 16);
     const g = parseInt(clean[1]! + clean[1]!, 16);
@@ -101,7 +101,8 @@ function rgbToAnsi256(r: number, g: number, b: number): number {
     if (r > 248) return 231;
     return Math.round(((r - 8) / 247) * 23) + 232;
   }
-  const toScale = (v: number) => Math.min(5, Math.max(0, Math.floor((v / 255) * 6)));
+  const toScale = (v: number) =>
+    Math.min(5, Math.max(0, Math.floor((v / 255) * 6)));
   return 16 + 36 * toScale(r) + 6 * toScale(g) + toScale(b);
 }
 
@@ -132,8 +133,8 @@ export function colorToSgr(
   isBg = false,
   colorLevel: 0 | 1 | 2 | 3 = 3,
 ): string {
-  if (!color || colorLevel === 0) return '';
-  if (typeof color === 'function') return '';
+  if (!color || colorLevel === 0) return "";
+  if (typeof color === "function") return "";
 
   const normalized = color.trim().toLowerCase();
 
@@ -147,7 +148,7 @@ export function colorToSgr(
   }
 
   // Hex colors: #rgb or #rrggbb
-  if (normalized.startsWith('#')) {
+  if (normalized.startsWith("#")) {
     const rgb = parseHex(normalized);
     if (rgb) {
       const [r, g, b] = rgb;
@@ -162,10 +163,10 @@ export function colorToSgr(
   }
 
   // rgb(r, g, b)
-  if (normalized.startsWith('rgb(') && normalized.endsWith(')')) {
+  if (normalized.startsWith("rgb(") && normalized.endsWith(")")) {
     const parts = normalized
       .slice(4, -1)
-      .split(',')
+      .split(",")
       .map((p) => parseInt(p.trim(), 10) || 0);
     if (parts.length >= 3) {
       const [r, g, b] = [parts[0]!, parts[1]!, parts[2]!];
@@ -180,14 +181,14 @@ export function colorToSgr(
   }
 
   // ansi256(n)
-  if (normalized.startsWith('ansi256(') && normalized.endsWith(')')) {
+  if (normalized.startsWith("ansi256(") && normalized.endsWith(")")) {
     const n = parseInt(normalized.slice(8, -1).trim(), 10) || 0;
     if (colorLevel >= 2) {
       return `\x1b[${isBg ? 48 : 38};5;${n}m`;
     }
   }
 
-  return '';
+  return "";
 }
 
 /**
@@ -207,29 +208,29 @@ export function styleText(
     colorLevel?: 0 | 1 | 2 | 3;
   } = {},
 ): string {
-  if (!text) return '';
+  if (!text) return "";
 
-  if (typeof options.color === 'function') {
+  if (typeof options.color === "function") {
     text = options.color(text);
   }
-  if (typeof options.backgroundColor === 'function') {
+  if (typeof options.backgroundColor === "function") {
     text = options.backgroundColor(text);
   }
 
-  let prefix = '';
+  let prefix = "";
   const level = options.colorLevel ?? 3;
 
-  if (options.bold) prefix += '\x1b[1m';
-  if (options.dim) prefix += '\x1b[2m';
-  if (options.italic) prefix += '\x1b[3m';
-  if (options.underline) prefix += '\x1b[4m';
-  if (options.inverse) prefix += '\x1b[7m';
-  if (options.strikethrough) prefix += '\x1b[9m';
+  if (options.bold) prefix += "\x1b[1m";
+  if (options.dim) prefix += "\x1b[2m";
+  if (options.italic) prefix += "\x1b[3m";
+  if (options.underline) prefix += "\x1b[4m";
+  if (options.inverse) prefix += "\x1b[7m";
+  if (options.strikethrough) prefix += "\x1b[9m";
 
-  if (typeof options.color === 'string') {
+  if (typeof options.color === "string") {
     prefix += colorToSgr(options.color, false, level);
   }
-  if (typeof options.backgroundColor === 'string') {
+  if (typeof options.backgroundColor === "string") {
     prefix += colorToSgr(options.backgroundColor, true, level);
   }
 
