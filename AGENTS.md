@@ -24,3 +24,10 @@
 ## 6. API Verification & Fresh Documentation
 - Never rely blindly on pre-training data for package APIs, as it may contain deprecated or obsolete information.
 - Always verify APIs by reading local documentation/source directly, checking available skills, or performing targeted web searches.
+
+## 7. Mandatory JSDoc Documentation
+- Every function, method, interface, type, and exported construct must have comprehensive, accurate JSDoc comments explaining its purpose, parameters, and return values.
+
+## 8. Strict Casing Conventions
+- Only PascalCase and camelCase are permitted for identifiers, types, files, and code constructs.
+- Do not use snake_case, kebab-case, or alternative casing styles unless strictly required by an external standard or protocol.
