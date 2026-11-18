@@ -1,9 +1,9 @@
-import { ANSI_ESCAPE_REGEX, stripAnsi } from './ansi.js';
+import { ANSI_ESCAPE_REGEX, stripAnsi } from "./ansi.js";
 
 /**
  * Global grapheme segmenter using standard ECMAScript Intl API.
  */
-const graphemeSegmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+const graphemeSegmenter = new Intl.Segmenter("en", { granularity: "grapheme" });
 
 /**
  * Bounded cache storing computed display widths for unique graphemes.
@@ -13,10 +13,10 @@ const graphemeWidthCache = new Map<string, number>();
 /**
  * Maximum capacity for the grapheme width cache.
  */
-const MAX_CACHE_SIZE = 4096;
+const maxCacheSize = 4096;
 
 /**
- * Checks whether a Unicode code point is non-printing or zero-width.
+ * Checks whether a Unicode code point is non-printing or zero-width in terminal cells.
  *
  * @param codePoint - The Unicode code point to test.
  * @returns True if the code point occupies zero terminal columns.
@@ -164,12 +164,12 @@ function isEmojiCodePoint(codePoint: number): boolean {
 }
 
 /**
- * Pure TypeScript fallback to calculate visual display width for a single grapheme cluster.
+ * Calculates visual display cell width for a single grapheme cluster.
  *
  * @param grapheme - The grapheme cluster string to evaluate.
  * @returns The integer column width (0, 1, or 2).
  */
-function computeGraphemeWidthJavaScript(grapheme: string): number {
+function calculateGraphemeWidth(grapheme: string): number {
   if (!grapheme) {
     return 0;
   }
@@ -185,21 +185,14 @@ function computeGraphemeWidthJavaScript(grapheme: string): number {
     }
     return count === 1 ? 1 : 2;
   }
-  if (isEastAsianWideCodePoint(firstCodePoint) || isEmojiCodePoint(firstCodePoint)) {
+  if (
+    isEastAsianWideCodePoint(firstCodePoint) ||
+    isEmojiCodePoint(firstCodePoint)
+  ) {
     return 2;
   }
   return 1;
 }
-
-/**
- * Cached reference to Bun's native string width calculation if available.
- */
-const bunNativeStringWidth: ((str: string, options?: { ambiguousIsNarrow?: boolean }) => number) | null =
-  typeof Bun !== 'undefined' && typeof Bun.stringWidth === 'function'
-    ? (Bun.stringWidth as (str: string, options?: { ambiguousIsNarrow?: boolean }) => number)
-    : null;
-
-const bunStringWidthOptions = { ambiguousIsNarrow: true } as const;
 
 /**
  * Expands tab characters (\t) to spaces advancing to the next tab stop.
@@ -209,17 +202,17 @@ const bunStringWidthOptions = { ambiguousIsNarrow: true } as const;
  * @returns The text with all tab characters replaced by visual spaces.
  */
 export function expandTabs(text: string, tabWidth = 4): string {
-  if (!text || !text.includes('\t')) return text;
-  let result = '';
+  if (!text || !text.includes("\t")) return text;
+  let result = "";
   let col = 0;
 
   for (let i = 0; i < text.length; i++) {
     const ch = text[i]!;
-    if (ch === '\t') {
+    if (ch === "\t") {
       const spaces = tabWidth - (col % tabWidth);
-      result += ' '.repeat(spaces);
+      result += " ".repeat(spaces);
       col += spaces;
-    } else if (ch === '\n' || ch === '\r') {
+    } else if (ch === "\n" || ch === "\r") {
       result += ch;
       col = 0;
     } else {
@@ -263,11 +256,9 @@ export function graphemeWidth(grapheme: string): number {
   const cached = graphemeWidthCache.get(grapheme);
   if (cached !== undefined) return cached;
 
-  const w = bunNativeStringWidth
-    ? bunNativeStringWidth(grapheme, bunStringWidthOptions)
-    : computeGraphemeWidthJavaScript(grapheme);
+  const w = calculateGraphemeWidth(grapheme);
 
-  if (graphemeWidthCache.size < MAX_CACHE_SIZE) {
+  if (graphemeWidthCache.size < maxCacheSize) {
     graphemeWidthCache.set(grapheme, w);
   }
   return w;
@@ -311,9 +302,12 @@ export function visibleWidth(text: string): number {
  * @param charOffset - Logical character offset.
  * @returns 1-indexed visual terminal column.
  */
-export function visibleColumnAtOffset(text: string, charOffset: number): number {
+export function visibleColumnAtOffset(
+  text: string,
+  charOffset: number,
+): number {
   if (charOffset <= 0 || !text) return 1;
-  const ansiRegex = new RegExp(ANSI_ESCAPE_REGEX.source, 'g');
+  const ansiRegex = new RegExp(ANSI_ESCAPE_REGEX.source, "g");
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let col = 1;
