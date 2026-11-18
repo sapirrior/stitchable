@@ -31,3 +31,9 @@
 ## 8. Strict Casing Conventions
 - Only PascalCase and camelCase are permitted for identifiers, types, files, and code constructs.
 - Do not use snake_case, kebab-case, or alternative casing styles unless strictly required by an external standard or protocol.
+
+## 9. Target Runtime vs Development Environment
+- Bun is strictly for the local development environment, fast script execution, and developer tooling.
+- Node.js is the primary target runtime for the published library and must be treated as the source of truth for runtime behavior and compatibility.
+- Never leak Bun-only globals, APIs, or `@types/bun` assumptions into production code or public consumer contracts. All code must execute cleanly and natively in Node.js.
+
